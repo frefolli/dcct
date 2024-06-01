@@ -6,6 +6,8 @@ namespace dcct {
   struct SlowActuator {
     Eigen::MatrixXd dct(const Eigen::MatrixXd& X);
     Eigen::MatrixXd dct2(const Eigen::MatrixXd& X);
+    Eigen::MatrixXd idct(const Eigen::MatrixXd& Y);
+    Eigen::MatrixXd idct2(const Eigen::MatrixXd& Y);
 
     ImplTrait(SlowActuator, Actuator);
   };

@@ -25,3 +25,15 @@ Eigen::MatrixXd dcct::SlowActuator::dct(const Eigen::MatrixXd& X) {
 Eigen::MatrixXd dcct::SlowActuator::dct2(const Eigen::MatrixXd& X) {
   return dct(dct(X).transpose()).transpose();
 }
+
+Eigen::MatrixXd dcct::SlowActuator::idct(const Eigen::MatrixXd& Y) {
+  uint32_t N = Y.rows(), M = Y.cols();
+  Eigen::MatrixXd X(N, M);
+  return X;
+}
+
+Eigen::MatrixXd dcct::SlowActuator::idct2(const Eigen::MatrixXd& Y) {
+  uint32_t N = Y.rows(), M = Y.cols();
+  Eigen::MatrixXd X(N, M);
+  return X;
+}
