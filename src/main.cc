@@ -1,6 +1,7 @@
 #include <dcct.hh>
 #include <cassert>
 #include <iostream>
+#include <chrono>
 
 const std::string DEFAULT_MATRIX_PATTERN = "src:input";
 const std::string DEFAULT_ACTUATOR_PATTERN = "fttw:10:8";
@@ -96,13 +97,32 @@ int main(int argc, char** args) {
   if (cli_config.dry_run)
     return 0;
 
+  auto start = std::chrono::utc_clock::now();
+  
   Eigen::MatrixXd X;
   dcct::FromMatrixSpecifier(X, matrix_specifier);
+  
+  auto round = std::chrono::utc_clock::now();
+  std::cout << "Parse Matrix From Specifier | " << std::chrono::duration<double>(round - start) << std::endl;
+  start = round;
+
   dcct::DumpMatrix(X, "output.X.mat");
-  dcct::LogInfo("Matrix Generated");
+  
+  round = std::chrono::utc_clock::now();
+  std::cout << "Dumped X Matrix             | " << std::chrono::duration<double>(round - start) << std::endl;
+  start = round;
 
   Eigen::MatrixXd Y;
   UseSpecifierActuator(Y, actuator_specifier, X);
+  
+  round = std::chrono::utc_clock::now();
+  std::cout << "Computed Y Matrix           | " << std::chrono::duration<double>(round - start) << std::endl;
+  start = round;
+
   dcct::DumpMatrix(Y, "output.Y.mat");
+  
+  round = std::chrono::utc_clock::now();
+  std::cout << "Dumped Y Matrix             | " << std::chrono::duration<double>(round - start) << std::endl;
+  start = round;
   return 0;
 }
