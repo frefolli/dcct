@@ -4,8 +4,8 @@
 #include <dcct/actuator.hh>
 namespace dcct {
   struct FFTWActuator {
-    Eigen::MatrixXd dct(const Eigen::MatrixXd& M);
-    Eigen::MatrixXd dct2(const Eigen::MatrixXd& M);
+    Eigen::MatrixXd dct(const Eigen::MatrixXd& X);
+    Eigen::MatrixXd dct2(const Eigen::MatrixXd& X);
 
     ImplTrait(FFTWActuator, Actuator);
   };

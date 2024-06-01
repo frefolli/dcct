@@ -1,0 +1,4 @@
+ninja -j 0 -C ./builddir
+ninja: Entering directory `./builddir'
+ninja: build stopped: interrupted by user.
+make: *** [Makefile:15: builddir/dcct.so] Error 2

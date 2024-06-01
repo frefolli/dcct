@@ -16,7 +16,7 @@ inline void PrintHelp(std::string executable) {
   std::cerr << "Usage: " << executable << " [options]" << std::endl;
   std::cerr << "Options:" << std::endl;
   std::cerr << "  -m/--matrix <matrix-pattern>          Expects a Matrix Specifer of form `src:<path>` or `<class>[:N[:density]]`" << std::endl;
-  std::cerr << "  -s/--actuator <actuator-pattern>      Expects a Actuator Specifer of form `<class>[:tol[:maxIter]]`" << std::endl;
+  std::cerr << "  -a/--actuator <actuator-pattern>      Expects a Actuator Specifer of form `<class>[:tol[:maxIter]]`" << std::endl;
   std::cerr << "  -d/--dry-run                          Exit after parsing specifiers" << std::endl;
   std::cerr << "  -v/--verbose                          Verbose log" << std::endl;
   std::cerr << std::endl;
@@ -36,7 +36,7 @@ inline void ParseArguments(int argc, char** args, CliConfig& cli_config) {
       }
       argument = args[++i];
       cli_config.matrix_pattern = argument;
-    } else if (argument == "-s" || argument == "--actuator") {
+    } else if (argument == "-a" || argument == "--actuator") {
       if (i + 1 >= argc) {
         dcct::RaiseFatalError("expected actuator-pattern after " + argument);
       }
@@ -96,7 +96,13 @@ int main(int argc, char** args) {
   if (cli_config.dry_run)
     return 0;
 
-  Eigen::MatrixXd A;
-  dcct::FromMatrixSpecifier(A, matrix_specifier);
+  Eigen::MatrixXd X;
+  dcct::FromMatrixSpecifier(X, matrix_specifier);
+  dcct::DumpMatrix(X, "output.X.mat");
+  dcct::LogInfo("Matrix Generated");
+
+  Eigen::MatrixXd Y;
+  UseSpecifierActuator(Y, actuator_specifier, X);
+  dcct::DumpMatrix(Y, "output.Y.mat");
   return 0;
 }

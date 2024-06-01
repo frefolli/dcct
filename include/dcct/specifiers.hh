@@ -35,7 +35,7 @@ namespace dcct {
    * Parses a Matrix specifier from a string pattern
    * @param pattern input pattern
   */
-  MatrixSpecifier ParseMatrixSpecifier(std::string pattern);
+  MatrixSpecifier ParseMatrixSpecifier(const std::string& pattern);
   
   /** Actuator Variants defined with X clause */
   #define ACTUATOR_VARIANTS \
@@ -65,6 +65,6 @@ namespace dcct {
    * Parses a Actuator specifier from a string pattern
    * @param pattern input pattern
   */
-  ActuatorSpecifier ParseActuatorSpecifier(std::string pattern);
+  ActuatorSpecifier ParseActuatorSpecifier(const std::string& pattern);
 }
 #endif//DCCT_SPECIFIERS_HH

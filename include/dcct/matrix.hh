@@ -20,17 +20,25 @@ namespace dcct {
   bool DumpMatrix(const Eigen::MatrixXd& matrix, const std::string& filepath);
 
   /**
+   * Randomizes a Matrix
+   * @param matrix output matrix
+   * @param N number of rows
+   * @param M number of columns
+  */
+  bool RandomizeMatrix(Eigen::MatrixXd& matrix, uint32_t N, uint32_t M);
+
+  /**
    * Creates a matrix from a pattern of specifier
    * @param matrix output matrix
    * @param pattern input pattern
   */
-  bool FromMatrixSpecifier(Eigen::MatrixXd& matrix, std::string pattern);
+  bool FromMatrixSpecifier(Eigen::MatrixXd& matrix, const std::string& pattern);
 
   /**
    * Creates a matrix from a concrete specifier
    * @param matrix output matrix
    * @param specifier input specifier
   */
-  bool FromMatrixSpecifier(Eigen::MatrixXd& matrix, MatrixSpecifier& specifier);
+  bool FromMatrixSpecifier(Eigen::MatrixXd& matrix, const MatrixSpecifier& specifier);
 }
 #endif//DCCT_MATRIX_HH

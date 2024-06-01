@@ -9,9 +9,10 @@ BUILD_TYPE=release
 
 ${BUILDDIR}: ${MESON_CONF}
 	meson setup --buildtype=${BUILD_TYPE} ${BUILDDIR}
+	cp -r $$(pwd)/resources ${BUILDDIR}/resources
 
 ${LIB}: ${BUILDDIR} ${SRC} ${INCLUDE}
-	ninja -j 0 -C ${BUILDDIR}
+	ninja -C ${BUILDDIR}
 
 clean:
 	rm -rf ${BUILDDIR}

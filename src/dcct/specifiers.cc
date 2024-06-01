@@ -1,6 +1,6 @@
 #include <dcct/specifiers.hh>
 
-inline void _ProcessBufferForMatrixSpecifier(dcct::MatrixSpecifier& result, bool& already_read_N, std::string& buffer) {
+inline void _ProcessBufferForMatrixSpecifier(dcct::MatrixSpecifier& result, bool& already_read_N, const std::string& buffer) {
   switch (result.type) {
     case dcct::MatrixSpecifier::Type::NONE: {
       if (buffer == "src") {
@@ -23,7 +23,7 @@ inline void _ProcessBufferForMatrixSpecifier(dcct::MatrixSpecifier& result, bool
   }
 }
 
-dcct::MatrixSpecifier dcct::ParseMatrixSpecifier(std::string pattern) {
+dcct::MatrixSpecifier dcct::ParseMatrixSpecifier(const std::string& pattern) {
   dcct::MatrixSpecifier result = {
     .type = dcct::MatrixSpecifier::Type::NONE,
     .ID = "",
@@ -62,7 +62,7 @@ std::string dcct::ToString(dcct::MatrixSpecifier::Type type) {
   return "<matrix-type>";
 }
 
-inline void _ProcessBufferForActuatorSpecifier(dcct::ActuatorSpecifier& result, bool& already_read_blockSize, std::string& buffer) {
+inline void _ProcessBufferForActuatorSpecifier(dcct::ActuatorSpecifier& result, bool& already_read_blockSize, const std::string& buffer) {
   switch (result.type) {
     case dcct::ActuatorSpecifier::Type::NONE: {
       if (buffer == "slow") {
@@ -84,7 +84,7 @@ inline void _ProcessBufferForActuatorSpecifier(dcct::ActuatorSpecifier& result, 
   }
 }
 
-dcct::ActuatorSpecifier dcct::ParseActuatorSpecifier(std::string pattern) {
+dcct::ActuatorSpecifier dcct::ParseActuatorSpecifier(const std::string& pattern) {
   dcct::ActuatorSpecifier result = {
     .type = dcct::ActuatorSpecifier::Type::NONE,
     .blockSize = 10,
