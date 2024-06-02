@@ -138,6 +138,14 @@ int DoBenchmark(CliConfig& cli_config) {
     report.data.clear();
     report.filepath = cli_config.report_filepath;
   }
+
+  dcct::Benchmark benchmark = {
+    .minSize = 10,
+    .maxSize = 100,
+    .step = 10
+  };
+  dcct::ExecuteBenchmark(report, benchmark);
+
   dcct::DumpReport(report);
   
   return 0;
