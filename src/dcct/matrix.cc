@@ -3,10 +3,27 @@
 #include <filesystem>
 #include <random>
 
-bool dcct::LoadMatrix(Eigen::MatrixXd& matrix, const std::string& filepath) {
-  if (!std::filesystem::exists(filepath))
-    return false;
-  
+inline void LoadMatrixBin(Eigen::MatrixXd& matrix, const std::string& filepath) {
+  std::ifstream in(filepath, std::ios::in | std::ios::binary);
+  uint32_t rows, cols;
+  in.read((char*) &rows,sizeof(uint32_t));
+  in.read((char*) &cols,sizeof(uint32_t));
+  matrix.resize(rows, cols);
+  in.read((char *) matrix.data() , rows * cols * sizeof(double));
+  in.close();
+}
+
+inline void DumpMatrixBin(const Eigen::MatrixXd& matrix, const std::string& filepath) {
+  std::ofstream out(filepath, std::ios::out | std::ios::binary | std::ios::trunc);
+  uint32_t rows = matrix.rows();
+  uint32_t cols = matrix.cols();
+  out.write((const char*) &rows, sizeof(uint32_t));
+  out.write((const char*) &cols, sizeof(uint32_t));
+  out.write((const char*) matrix.data(), rows * cols * sizeof(double));
+  out.close();
+}
+
+inline void LoadMatrixMat(Eigen::MatrixXd& matrix, const std::string& filepath) {
   std::ifstream file;
   file.open(filepath);
   uint32_t N = 0, M = 0;
@@ -20,10 +37,9 @@ bool dcct::LoadMatrix(Eigen::MatrixXd& matrix, const std::string& filepath) {
     }
   }
   file.close();
-  return true;
 }
 
-bool dcct::DumpMatrix(const Eigen::MatrixXd& matrix, const std::string& filepath) {
+inline void DumpMatrixMat(const Eigen::MatrixXd& matrix, const std::string& filepath) {
   std::ofstream file;
   file.open(filepath);
   uint32_t N = matrix.rows(), M = matrix.cols();
@@ -37,6 +53,31 @@ bool dcct::DumpMatrix(const Eigen::MatrixXd& matrix, const std::string& filepath
     }
   }
   file.close();
+}
+
+bool dcct::LoadMatrix(Eigen::MatrixXd& matrix, const std::string& filepath, dcct::MatrixFileFormat format) {
+  if (!std::filesystem::exists(filepath))
+    return false;
+  switch (format) {
+    case dcct::MatrixFileFormat::BIN: {
+      LoadMatrixBin(matrix, filepath);
+    }; break;
+    case dcct::MatrixFileFormat::MAT: {
+      LoadMatrixMat(matrix, filepath);
+    }; break;
+  }
+  return true;
+}
+
+bool dcct::DumpMatrix(const Eigen::MatrixXd& matrix, const std::string& filepath, dcct::MatrixFileFormat format) {
+  switch (format) {
+    case dcct::MatrixFileFormat::BIN: {
+      DumpMatrixBin(matrix, filepath);
+    }; break;
+    case dcct::MatrixFileFormat::MAT: {
+      DumpMatrixMat(matrix, filepath);
+    }; break;
+  }
   return true;
 }
 
@@ -49,7 +90,9 @@ bool dcct::FromMatrixSpecifier(Eigen::MatrixXd& matrix, const dcct::MatrixSpecif
   bool ok = true;
   switch (specifier.type) {
     case dcct::MatrixSpecifier::Type::SRC: {
-      ok = dcct::LoadMatrix(matrix, "resources/matrices/" + specifier.ID + ".mat");
+      ok = dcct::LoadMatrix(matrix, "resources/matrices/" + specifier.ID + ".bin", dcct::MatrixFileFormat::BIN);
+      if (!ok)
+        ok = dcct::LoadMatrix(matrix, "resources/matrices/" + specifier.ID + ".mat", dcct::MatrixFileFormat::MAT);
     }; break;
     case dcct::MatrixSpecifier::Type::RND: {
       ok = dcct::RandomizeMatrix(matrix, specifier.N, specifier.M);

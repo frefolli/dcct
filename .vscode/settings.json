@@ -60,7 +60,13 @@
     "thread": "cpp",
     "typeinfo": "cpp",
     "cassert": "cpp",
-    "chrono": "cpp"
+    "chrono": "cpp",
+    "cfloat": "cpp",
+    "charconv": "cpp",
+    "format": "cpp",
+    "span": "cpp",
+    "variant": "cpp",
+    "core": "cpp"
   },
   "C_Cpp.default.compileCommands": "/home/refo/Desktop/dcct/builddir/compile_commands.json",
   "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
