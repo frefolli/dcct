@@ -1,4 +1,5 @@
 #include <dcct.hh>
+#include <dcct/gui.hh>
 #include <cassert>
 #include <iostream>
 #include <chrono>
@@ -115,7 +116,7 @@ inline void ParseArguments(int argc, char** args, CliConfig& cli_config) {
     } else if (argument == "-C" || argument == "--do-compression") {
       cli_config.compress = true;
     } else if (argument == "-G" || argument == "--do-gui") {
-      cli_config.compress = true;
+      cli_config.gui = true;
     } else {
       dcct::LogWarning("unknown option '" + argument + "'");
       PrintHelp(args[0]);
@@ -296,9 +297,9 @@ int DoIDCT2(CliConfig& cli_config) {
   return 0;
 }
 
-void DoGUI(CliConfig& cli_config) {
+void DoGUI(CliConfig& cli_config, int argc, char** args) {
   dcct::LogWarning("Not Implemented");
-  QApplication app(argc, argv);
+  QApplication app(argc, args);
   dcct::Tester test;
   test.show();
   app.exec();
@@ -317,7 +318,7 @@ int main(int argc, char** args) {
   } else if (cli_config.idct2) {
     DoIDCT2(cli_config);
   } else if (cli_config.gui) {
-    DoGUI(cli_config);
+    DoGUI(cli_config, argc, args);
   }
 
   return 0;

@@ -36,4 +36,5 @@ exe = executable('main.exe', [
     'src/main.cc',
   ], install : false,
   include_directories: './include',
-  link_with: dcct)
+  link_with: dcct,
+  dependencies: [libQt6])

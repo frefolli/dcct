@@ -1,11 +1,9 @@
-#include <gui.hh>
+#include <dcct/gui.hh>
 
 #include <iostream>
 #include <QVBoxLayout>
 
-Tester::Tester(QWidget* parent)
-:QMainWindow(parent), mButtonPressedAmt(0)
-{
+dcct::Tester::Tester(QWidget* parent) : QMainWindow(parent), mButtonPressedAmt(0) {
     //Since this is a QMainWindow we cannot set a layout,
     //we can only set a central widget.
     auto centralWidget = new QWidget(this);
@@ -39,8 +37,7 @@ Tester::Tester(QWidget* parent)
     });
 }
 
-void Tester::updateLabelText()
-{
+void dcct::Tester::updateLabelText() {
     this->mpLabel->setText("Button was clicked: " + QString::number(this->mButtonPressedAmt) + " times.");
 
     emit sigLabelTextUpdated(this->mpLabel->text().toStdString());
