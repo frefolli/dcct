@@ -1,6 +1,7 @@
 #include <dcct/tests.hh>
 #include <dcct.hh>
 #include <cassert>
+#include <iostream>
 
 int main() {
   Eigen::MatrixXd input;
@@ -10,6 +11,8 @@ int main() {
 
   dcct::FastActuator actuator;
   Eigen::MatrixXd got = actuator.idct(input);
+
+  std::cerr << got << std::endl;
 
   dcct::Comparison comparison = dcct::CompareMatrices(expected, got);
   assert(comparison.same_dimension);

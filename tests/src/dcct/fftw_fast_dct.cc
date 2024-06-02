@@ -3,13 +3,14 @@
 #include <cassert>
 
 int main() {
-  Eigen::MatrixXd input;
-  assert(dcct::FromMatrixSpecifier(input, {.type = dcct::MatrixSpecifier::Type::RND, .ID = "", .N = 10, .M = 10}));
+  Eigen::MatrixXd fftw_input;
+  assert(dcct::FromMatrixSpecifier(fftw_input, {.type = dcct::MatrixSpecifier::Type::RND, .ID = "", .N = 10, .M = 10}));
+  Eigen::MatrixXd fast_input = fftw_input;
 
   dcct::FFTWActuator fftw_actuator;
   dcct::FastActuator fast_actuator;
-  Eigen::MatrixXd fftw_dct = fftw_actuator.dct(input);
-  Eigen::MatrixXd fast_dct = fast_actuator.dct(input);
+  Eigen::MatrixXd fftw_dct = fftw_actuator.dct(fftw_input);
+  Eigen::MatrixXd fast_dct = fast_actuator.dct(fast_input);
 
   dcct::Comparison comparison = dcct::CompareMatrices(fftw_dct, fast_dct);
   assert(comparison.same_dimension);

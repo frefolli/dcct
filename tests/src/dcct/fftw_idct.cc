@@ -12,8 +12,6 @@ int main() {
   dcct::FFTWActuator actuator;
   Eigen::MatrixXd got = actuator.idct(input);
 
-  std::cout << got << std::endl;
-
   dcct::Comparison comparison = dcct::CompareMatrices(expected, got);
   assert(comparison.same_dimension);
   AssertLessThan(comparison.norm_of_diff, dcct::TESTING_ATOL);

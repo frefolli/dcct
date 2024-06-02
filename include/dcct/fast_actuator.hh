@@ -4,10 +4,10 @@
 #include <dcct/actuator.hh>
 namespace dcct {
   struct FastActuator {
-    Eigen::MatrixXd dct(const Eigen::MatrixXd& X);
-    Eigen::MatrixXd dct2(const Eigen::MatrixXd& X);
-    Eigen::MatrixXd idct(const Eigen::MatrixXd& Y);
-    Eigen::MatrixXd idct2(const Eigen::MatrixXd& Y);
+    Eigen::MatrixXd dct(Eigen::MatrixXd& X);
+    Eigen::MatrixXd dct2(Eigen::MatrixXd& X);
+    Eigen::MatrixXd idct(Eigen::MatrixXd& Y);
+    Eigen::MatrixXd idct2(Eigen::MatrixXd& Y);
 
     ImplTrait(FastActuator, Actuator);
   };
