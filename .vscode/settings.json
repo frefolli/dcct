@@ -68,6 +68,6 @@
     "variant": "cpp",
     "core": "cpp"
   },
-  "C_Cpp.default.compileCommands": "/home/refo/Desktop/dcct/builddir/compile_commands.json",
+  "C_Cpp.default.compileCommands": "c:\\Users\\franc\\Desktop\\dcct\\builddir/compile_commands.json",
   "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
 }

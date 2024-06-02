@@ -10,4 +10,6 @@
 #include <dcct/specifiers.hh>
 #include <dcct/testing.hh>
 #include <dcct/timer.hh>
+#include <dcct/compression.hh>
+#include <dcct/gui.hh>
 #endif//DCCT_HH
