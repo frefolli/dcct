@@ -33,11 +33,24 @@ namespace dcct {
   bool LoadReport(Report& report, const std::string& filepath);
   
   /**
-   * Dumps a Report from json file
+   * Dumps a Report to json file
    * @param report input Report
-   * @param filepath output file path
   */
   bool DumpReport(const Report& report);
+
+  /**
+   * Loads a Benchmark from json file
+   * @param benchmark output Benchmark
+   * @param filepath input file path
+  */
+  bool LoadBenchmark(Benchmark& benchmark, const std::string& filepath);
+  
+  /**
+   * Dumps a Benchmark to json file
+   * @param benchmark input Benchmark
+   * @param filepath output file path
+  */
+  bool DumpBenchmark(const Benchmark& benchmark, const std::string& filepath);
 
   /**
    * Executes a benchmark and stores info inside the report

@@ -9,7 +9,8 @@
 #include <json/json.h>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
+#include <cxxabi.h>
+#include <string>
 
 bool dcct::LoadReport(dcct::Report& report, const std::string& filepath) {
   if (!std::filesystem::exists(filepath)) {
@@ -84,27 +85,79 @@ bool dcct::DumpReport(const dcct::Report& report) {
   return true;
 }
 
+bool dcct::LoadBenchmark(dcct::Benchmark& benchmark, const std::string& filepath) {
+  if (!std::filesystem::exists(filepath)) {
+    return false;
+  }
+
+  std::ifstream in;
+  in.open(filepath);
+  Json::Value data;
+  Json::Reader text_reader;
+  if (!(text_reader.parse(in, data))) {
+    dcct::LogWarning("syntax error while reading " + filepath);
+    return false;
+  }
+  in.close();
+
+  if (!data.isObject()) {
+    dcct::LogWarning("expected an object inside " + filepath);
+    return false;
+  }
+
+  benchmark.minSize = data["minSize"].asUInt();
+  benchmark.maxSize = data["maxSize"].asUInt();
+  benchmark.step = data["step"].asUInt();
+
+  return true;
+}
+
+bool dcct::DumpBenchmark(const dcct::Benchmark& benchmark, const std::string& filepath) {
+  Json::Value dump = Json::objectValue;
+  dump["minSize"] = benchmark.minSize;
+  dump["maxSize"] = benchmark.maxSize;
+  dump["step"] = benchmark.step;
+
+  Json::StreamWriterBuilder stream_writer_builder;
+  Json::StreamWriter* json_writer = stream_writer_builder.newStreamWriter();
+  std::ofstream out;
+  out.open(filepath);
+  json_writer->write(dump, &out);
+  out.close();
+  delete json_writer;
+
+  return true;
+}
+
 template<typename ActuatorImpl>
 inline void RunAgainstMatrix(dcct::Report::Cell& result, Eigen::MatrixXd& matrix) {
   ImplTrait(ActuatorImpl, dcct::Actuator);
-
-  result.N = matrix.rows();
-  result.M = matrix.cols();
   dcct::Timer timer;
   timer.reset();
   ActuatorImpl actuator;
-  actuator.dct2(matrix);
+  (void)actuator.dct2(matrix);
   result.elapsed = timer.round();
 }
 
 template<typename ActuatorImpl>
-inline void RunIfNotAlready(const Eigen::MatrixXd& benchmark_matrix) {
+inline void RunIfNotAlready(dcct::Report& report, Eigen::MatrixXd& benchmark_matrix) {
   ImplTrait(ActuatorImpl, dcct::Actuator);
-
-  Eigen::MatrixXd shipped_matrix = benchmark_matrix;
+  std::string label = abi::__cxa_demangle(typeid(ActuatorImpl).name(), nullptr, nullptr, nullptr);
+  std::vector<dcct::Report::Cell>& cells = report.data[label];
   dcct::Report::Cell cell;
-  RunAgainstMatrix<dcct::SlowActuator>(cell, shipped_matrix);
-  report.data[typeid(ActuatorImpl).name()].push_back(cell);
+  cell.N = benchmark_matrix.rows();
+  cell.M = benchmark_matrix.cols();
+
+  auto it = std::find_if(cells.begin(), cells.end(), [&cell](const dcct::Report::Cell& existing_cell) {
+    return (cell.N == existing_cell.N && cell.M == existing_cell.M);
+  });
+  if (it == cells.end()) {
+    dcct::LogInfo("Executing for " + label + ": " + std::to_string(cell.N) + "x" + std::to_string(cell.M));
+    RunAgainstMatrix<ActuatorImpl>(cell, benchmark_matrix);
+    cells.push_back(cell);
+  } else {
+    dcct::LogInfo("Skipping for " + label + ": " + std::to_string(cell.N) + "x" + std::to_string(cell.M));
+  }
 }
 
 void dcct::ExecuteBenchmark(dcct::Report& report, const dcct::Benchmark& benchmark) {
@@ -118,10 +171,11 @@ void dcct::ExecuteBenchmark(dcct::Report& report, const dcct::Benchmark& benchma
   for (uint32_t size = benchmark.minSize; size <= benchmark.maxSize; size += benchmark.step) {
     matrix_specifier.N = size;
     matrix_specifier.M = size;
+    dcct::LogInfo("Generating a Matrix: " + std::to_string(matrix_specifier.N) + "x" + std::to_string(matrix_specifier.M));
     dcct::FromMatrixSpecifier(benchmark_matrix, matrix_specifier);
 
-    RunIfNotAlready<dcct::SlowActuator>(benchmark_matrix);
-    RunIfNotAlready<dcct::FastActuator>(benchmark_matrix);
-    RunIfNotAlready<dcct::FFTWActuator>(benchmark_matrix);
+    // RunIfNotAlready<dcct::SlowActuator>(report, benchmark_matrix);
+    RunIfNotAlready<dcct::FastActuator>(report, benchmark_matrix);
+    RunIfNotAlready<dcct::FFTWActuator>(report, benchmark_matrix);
   }
 }

@@ -1,5 +1,4 @@
 #include <dcct/fast_actuator.hh>
-#include <iostream>
 
 Eigen::MatrixXd dcct::FastActuator::dct(Eigen::MatrixXd& X) {
   uint32_t N = X.rows(), M = X.cols();
@@ -14,9 +13,10 @@ Eigen::MatrixXd dcct::FastActuator::dct(Eigen::MatrixXd& X) {
   }
 
   Eigen::RowVectorXd W;
+  X.transposeInPlace();
   for (uint32_t k = 0; k < M; ++k) {
     W = (Z * k).array().cos();
-    Y.col(k) = (W * X.transpose()).colwise().sum() * sqrt_of_two_over_M;
+    Y.col(k) = (W * X).colwise().sum() * sqrt_of_two_over_M;
   }
   Y.col(0) *= one_over_sqrt_of_two;
 
@@ -45,9 +45,10 @@ Eigen::MatrixXd dcct::FastActuator::idct(Eigen::MatrixXd& Y) {
   }
   
   Eigen::RowVectorXd W;
+  Y.transposeInPlace();
   for (uint32_t j = 0; j < M; ++j) {
     W = (Z * (j + 0.5)).array().cos();
-    X.col(j) = W * Y.transpose();
+    X.col(j) = W * Y;
   }
   return X;
 }

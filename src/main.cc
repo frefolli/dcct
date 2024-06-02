@@ -6,11 +6,13 @@
 const std::string DEFAULT_MATRIX_PATTERN = "src:input";
 const std::string DEFAULT_ACTUATOR_PATTERN = "fttw:10:8";
 const std::string DEFAULT_REPORT_FILEPATH = "report.json";
+const std::string DEFAULT_BENCHMARK_FILEPATH = "benchmark.json";
 
 struct CliConfig {
   std::string matrix_pattern = DEFAULT_MATRIX_PATTERN;
   std::string actuator_pattern = DEFAULT_ACTUATOR_PATTERN;
   std::string report_filepath = DEFAULT_REPORT_FILEPATH;
+  std::string benchmark_filepath = DEFAULT_BENCHMARK_FILEPATH;
   bool dry_run = false;
   bool verbose = false;
   bool benchmark = false;
@@ -24,6 +26,7 @@ inline void PrintHelp(std::string executable) {
   std::cerr << "  -m/--matrix <matrix-pattern>          Expects a Matrix Specifer of form `src:<path>` or `<class>[:N[:density]]`" << std::endl;
   std::cerr << "  -a/--actuator <actuator-pattern>      Expects a Actuator Specifer of form `<class>[:tol[:maxIter]]`" << std::endl;
   std::cerr << "  -r/--report <report-filepath>         Expects a json Report filepath" << std::endl;
+  std::cerr << "  -b/--benchmark <benchmark-filepath>   Expects a json Benchmark filepath" << std::endl;
   std::cerr << "  -d/--dry-run                          Exit after parsing specifiers" << std::endl;
   std::cerr << "  -v/--verbose                          Verbose log" << std::endl;
   std::cerr << std::endl;
@@ -36,6 +39,7 @@ inline void PrintHelp(std::string executable) {
   std::cerr << "  <matrix-pattern>                      `" << DEFAULT_MATRIX_PATTERN << "`" << std::endl;
   std::cerr << "  <actuator-pattern>                    `" << DEFAULT_ACTUATOR_PATTERN << "`" << std::endl;
   std::cerr << "  <report-filepath>                     `" << DEFAULT_REPORT_FILEPATH << "`" << std::endl;
+  std::cerr << "  <benchmark-filepath>                  `" << DEFAULT_BENCHMARK_FILEPATH << "`" << std::endl;
   std::cerr << std::endl;
   std::cerr << "Possible Actuators are:" << std::endl;
   std::cerr << "  slow                                  Slow and \"naive\" implementation of DCT/IDCT trait" << std::endl;
@@ -67,7 +71,13 @@ inline void ParseArguments(int argc, char** args, CliConfig& cli_config) {
       }
       argument = args[++i];
       cli_config.report_filepath = argument;
-    } else if (argument == "-d" || argument == "--dry-run") {
+    } else if (argument == "-b" || argument == "--benchmark") {
+      if (i + 1 >= argc) {
+        dcct::RaiseFatalError("expected benchmark-filepath after " + argument);
+      }
+      argument = args[++i];
+      cli_config.benchmark_filepath = argument;
+    }  else if (argument == "-d" || argument == "--dry-run") {
       cli_config.dry_run = true;
     } else if (argument == "-v" || argument == "--verbose") {
       cli_config.verbose = true;
@@ -129,8 +139,6 @@ inline void UseIDCT2(Eigen::MatrixXd& result,
 }
 
 int DoBenchmark(CliConfig& cli_config) {
-  dcct::LogWarning("Not Implemented");
-
   dcct::Report report;
   // If doesn't exist, it will create it
   if (!dcct::LoadReport(report, cli_config.report_filepath)) {
@@ -139,15 +147,19 @@ int DoBenchmark(CliConfig& cli_config) {
     report.filepath = cli_config.report_filepath;
   }
 
-  dcct::Benchmark benchmark = {
-    .minSize = 10,
-    .maxSize = 100,
-    .step = 10
-  };
-  dcct::ExecuteBenchmark(report, benchmark);
+  dcct::Benchmark benchmark;
+  if (!dcct::LoadBenchmark(benchmark, cli_config.benchmark_filepath)) {
+    dcct::LogInfo("file " + cli_config.benchmark_filepath + " doesn't exist, defaulting and creating it");
+    benchmark = {
+      .minSize = 10,
+      .maxSize = 100,
+      .step = 10
+    };
+    dcct::DumpBenchmark(benchmark, cli_config.benchmark_filepath);
+  }
 
+  dcct::ExecuteBenchmark(report, benchmark);
   dcct::DumpReport(report);
-  
   return 0;
 }
 
@@ -179,7 +191,6 @@ int DoDCT2(CliConfig& cli_config) {
     timer.round("Parse Matrix From Specifier");
 
   dcct::DumpMatrix(X, "output.X.bin", dcct::MatrixFileFormat::BIN);
-  std::cout << X << std::endl;
   if (cli_config.verbose)
     timer.round("Dumped X Matrix");
 
