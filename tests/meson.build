@@ -139,3 +139,59 @@ test_fftw_fast_idct2 = executable('test_fftw_fast_idct2', [
   include_directories: tests_includes,
   link_with: dcct)
 test('FFTW-Fast IDCT2 Consistency Test', test_fftw_fast_idct2)
+
+test_pocketfft_dct = executable('test_pocketfft_dct', [
+    './src/dcct/pocketfft_dct.cc',
+  ], install : false,
+  include_directories: tests_includes,
+  link_with: dcct)
+test('PocketFFT DCT Test', test_pocketfft_dct)
+
+test_pocketfft_dct2 = executable('test_pocketfft_dct2', [
+    './src/dcct/pocketfft_dct2.cc',
+  ], install : false,
+  include_directories: tests_includes,
+  link_with: dcct)
+test('PocketFFT DCT2 Test', test_pocketfft_dct2)
+
+test_pocketfft_fast_dct = executable('test_pocketfft_fast_dct', [
+    './src/dcct/pocketfft_fast_dct.cc',
+  ], install : false,
+  include_directories: tests_includes,
+  link_with: dcct)
+test('PocketFFT-Fast DCT Consistency Test', test_pocketfft_fast_dct)
+
+test_pocketfft_fast_dct2 = executable('test_pocketfft_fast_dct2', [
+    './src/dcct/pocketfft_fast_dct2.cc',
+  ], install : false,
+  include_directories: tests_includes,
+  link_with: dcct)
+test('PocketFFT-Fast DCT2 Consistency Test', test_pocketfft_fast_dct2)
+
+test_pocketfft_idct = executable('test_pocketfft_idct', [
+    './src/dcct/pocketfft_idct.cc',
+  ], install : false,
+  include_directories: tests_includes,
+  link_with: dcct)
+test('PocketFFT IDCT Test', test_pocketfft_idct)
+
+test_pocketfft_idct2 = executable('test_pocketfft_idct2', [
+    './src/dcct/pocketfft_idct2.cc',
+  ], install : false,
+  include_directories: tests_includes,
+  link_with: dcct)
+test('PocketFFT IDCT2 Test', test_pocketfft_idct2)
+
+test_pocketfft_fast_idct = executable('test_pocketfft_fast_idct', [
+    './src/dcct/pocketfft_fast_idct.cc',
+  ], install : false,
+  include_directories: tests_includes,
+  link_with: dcct)
+test('PocketFFT-Fast IDCT Consistency Test', test_pocketfft_fast_idct)
+
+test_pocketfft_fast_idct2 = executable('test_pocketfft_fast_idct2', [
+    './src/dcct/pocketfft_fast_idct2.cc',
+  ], install : false,
+  include_directories: tests_includes,
+  link_with: dcct)
+test('PocketFFT-Fast IDCT2 Consistency Test', test_pocketfft_fast_idct2)

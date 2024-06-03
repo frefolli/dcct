@@ -4,6 +4,7 @@
 #include <dcct/benchmark.hh>
 #include <dcct/fast_actuator.hh>
 #include <dcct/fftw_actuator.hh>
+#include <dcct/pocketfft_actuator.hh>
 #include <dcct/logging.hh>
 #include <dcct/matrix.hh>
 #include <dcct/slow_actuator.hh>

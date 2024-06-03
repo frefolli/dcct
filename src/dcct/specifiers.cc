@@ -71,6 +71,8 @@ inline void _ProcessBufferForActuatorSpecifier(dcct::ActuatorSpecifier& result, 
         result.type = dcct::ActuatorSpecifier::Type::FAST;
       } else if (buffer == "fftw") {
         result.type = dcct::ActuatorSpecifier::Type::FFTW;
+      } else if (buffer == "pocketfft") {
+        result.type = dcct::ActuatorSpecifier::Type::POCKETFFT;
       }
     }; break;
     default: {

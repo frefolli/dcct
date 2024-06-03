@@ -19,6 +19,7 @@ dcct = library('dcct', [
     './src/dcct/fftw_actuator.cc',
     './src/dcct/logging.cc',
     './src/dcct/matrix.cc',
+    './src/dcct/pocketfft_actuator.cc',
     './src/dcct/slow_actuator.cc',
     './src/dcct/specifiers.cc',
     './src/dcct/testing.cc',

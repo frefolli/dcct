@@ -42,7 +42,8 @@ namespace dcct {
     X(NONE), \
     X(SLOW), \
     X(FAST), \
-    X(FFTW)
+    X(FFTW), \
+    X(POCKETFFT)
   
   #define X(_) _
   /**

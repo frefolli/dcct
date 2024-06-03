@@ -26,6 +26,7 @@ struct CliConfig {
   bool dct2 = false;
   bool idct2 = false;
   bool gui = false;
+  bool readbin = false;
 };
 
 inline void PrintHelp(std::string executable) {
@@ -46,6 +47,7 @@ inline void PrintHelp(std::string executable) {
   std::cerr << "  -G/--do-gui                              Run the Compression GUI" << std::endl;
   std::cerr << "  -D/--do-dct2                             Apply DCT2 to a given matrix" << std::endl;
   std::cerr << "  -I/--do-idct2                            Apply DCT2 to a given matrix" << std::endl;
+  std::cerr << "  -R/--do-readbin                          Read and Print a Binary Matrix" << std::endl;
   std::cerr << std::endl;
   std::cerr << "Default settings:" << std::endl;
   std::cerr << "  <matrix-pattern>                         `" << DEFAULT_MATRIX_PATTERN << "`" << std::endl;
@@ -117,7 +119,9 @@ inline void ParseArguments(int argc, char** args, CliConfig& cli_config) {
       cli_config.compress = true;
     } else if (argument == "-G" || argument == "--do-gui") {
       cli_config.gui = true;
-    } else {
+    } else if (argument == "-R" || argument == "--do-readbin") {
+      cli_config.readbin = true;
+    }  else {
       dcct::LogWarning("unknown option '" + argument + "'");
       PrintHelp(args[0]);
     }
@@ -128,19 +132,23 @@ inline void UseDCT2(Eigen::MatrixXd& result,
                     dcct::ActuatorSpecifier& actuator_specifier,
                     Eigen::MatrixXd& M) {
   switch (actuator_specifier.type) {
-    case actuator_specifier.SLOW: {
+    case dcct::ActuatorSpecifier::Type::SLOW: {
       dcct::SlowActuator actuator;
       result = actuator.dct2(M);
     }; break;
-    case actuator_specifier.FAST: {
+    case dcct::ActuatorSpecifier::Type::FAST: {
       dcct::FastActuator actuator;
       result = actuator.dct2(M);
     }; break;
-    case actuator_specifier.FFTW: {
+    case dcct::ActuatorSpecifier::Type::FFTW: {
       dcct::FFTWActuator actuator;
       result = actuator.dct2(M);
     }; break;
-    case actuator_specifier.NONE: {
+    case dcct::ActuatorSpecifier::Type::POCKETFFT: {
+      dcct::PocketFFTActuator actuator;
+      result = actuator.dct2(M);
+    }; break;
+    case dcct::ActuatorSpecifier::Type::NONE: {
       dcct::RaiseFatalError("actuator not specified");
     }; break;
   }
@@ -150,19 +158,23 @@ inline void UseIDCT2(Eigen::MatrixXd& result,
                     dcct::ActuatorSpecifier& actuator_specifier,
                     Eigen::MatrixXd& M) {
   switch (actuator_specifier.type) {
-    case actuator_specifier.SLOW: {
+    case dcct::ActuatorSpecifier::Type::SLOW: {
       dcct::SlowActuator actuator;
       result = actuator.idct2(M);
     }; break;
-    case actuator_specifier.FAST: {
+    case dcct::ActuatorSpecifier::Type::FAST: {
       dcct::FastActuator actuator;
       result = actuator.idct2(M);
     }; break;
-    case actuator_specifier.FFTW: {
+    case dcct::ActuatorSpecifier::Type::FFTW: {
       dcct::FFTWActuator actuator;
       result = actuator.idct2(M);
     }; break;
-    case actuator_specifier.NONE: {
+    case dcct::ActuatorSpecifier::Type::POCKETFFT: {
+      dcct::PocketFFTActuator actuator;
+      result = actuator.idct2(M);
+    }; break;
+    case dcct::ActuatorSpecifier::Type::NONE: {
       dcct::RaiseFatalError("actuator not specified");
     }; break;
   }
@@ -297,6 +309,17 @@ int DoIDCT2(CliConfig& cli_config) {
   return 0;
 }
 
+int DoReadbin(CliConfig& cli_config) {
+  if (cli_config.dry_run)
+    return 0;
+  
+  Eigen::MatrixXd X;
+  dcct::LoadMatrix(X, cli_config.input_filepath, dcct::MatrixFileFormat::BIN);
+  std::cout << X << std::endl;
+ 
+  return 0;
+}
+
 int DoGUI(CliConfig& cli_config, int argc, char** args) {
   dcct::ActuatorSpecifier actuator_specifier = dcct::ParseActuatorSpecifier(cli_config.actuator_pattern);
   if (cli_config.verbose) {
@@ -330,6 +353,8 @@ int main(int argc, char** args) {
     return DoIDCT2(cli_config);
   } else if (cli_config.gui) {
     return DoGUI(cli_config, argc, args);
+  } else if (cli_config.readbin) {
+    return DoReadbin(cli_config);
   }
 
   return 0;
