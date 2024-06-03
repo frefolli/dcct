@@ -61,6 +61,7 @@ inline void PrintHelp(std::string executable) {
   std::cerr << "  slow                                     Slow and \"naive\" implementation of DCT/IDCT trait" << std::endl;
   std::cerr << "  fast                                     More advanced but still N^3 implementation of DCT/IDCT trait" << std::endl;
   std::cerr << "  fftw                                     FFTW for C/C++ based implementation of DCT/IDCT trait" << std::endl;
+  std::cerr << "  pocketfft                                PocketFFT for C/C++ based implementation of DCT/IDCT trait" << std::endl;
   exit(0);
 }
 
