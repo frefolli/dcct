@@ -34,7 +34,7 @@ inline void PrintHelp(std::string executable) {
   std::cerr << "  -m/--matrix <matrix-pattern>             Expects a Matrix Specifer of form `src:<path>` or `<class>[:N[:density]]`" << std::endl;
   std::cerr << "  -a/--actuator <actuator-pattern>         Expects a Actuator Specifer of form `<class>[:tol[:maxIter]]`" << std::endl;
   std::cerr << "  -r/--report <report-filepath>            Expects a json Report filepath" << std::endl;
-  std::cerr << "  -b/--do-benchmark <benchmark-filepath>   Expects a json Benchmark filepath" << std::endl;
+  std::cerr << "  -b/--benchmark <benchmark-filepath>   Expects a json Benchmark filepath" << std::endl;
   std::cerr << "  -i/--input <input-filepath>              Expects an image filepath" << std::endl;
   std::cerr << "  -o/--output <output-filepath>            Expects an image filepath" << std::endl;
   std::cerr << "  -d/--dry-run                             Exit after parsing specifiers" << std::endl;
@@ -297,12 +297,23 @@ int DoIDCT2(CliConfig& cli_config) {
   return 0;
 }
 
-void DoGUI(CliConfig& cli_config, int argc, char** args) {
-  dcct::LogWarning("Not Implemented");
+int DoGUI(CliConfig& cli_config, int argc, char** args) {
+  dcct::ActuatorSpecifier actuator_specifier = dcct::ParseActuatorSpecifier(cli_config.actuator_pattern);
+  if (cli_config.verbose) {
+    dcct::LogInfo("actuator.type:      " + dcct::ToString(actuator_specifier.type));
+    dcct::LogInfo("actuator.blockSize: " + std::to_string(actuator_specifier.blockSize));
+    dcct::LogInfo("actuator.quality:   " + std::to_string(actuator_specifier.quality));
+  }
+
+  if (cli_config.dry_run)
+    return 0;
+
   QApplication app(argc, args);
-  dcct::Tester test;
-  test.show();
+  dcct::GUI gui(actuator_specifier, cli_config.input_filepath);
+  gui.show();
   app.exec();
+
+  return 0;
 }
 
 int main(int argc, char** args) {
@@ -310,15 +321,15 @@ int main(int argc, char** args) {
   ParseArguments(argc, args, cli_config);
 
   if (cli_config.benchmark) {
-    DoBenchmark(cli_config);
+    return DoBenchmark(cli_config);
   } else if (cli_config.compress) {
-    DoCompress(cli_config);
+    return DoCompress(cli_config);
   } else if (cli_config.dct2) {
-    DoDCT2(cli_config);
+    return DoDCT2(cli_config);
   } else if (cli_config.idct2) {
-    DoIDCT2(cli_config);
+    return DoIDCT2(cli_config);
   } else if (cli_config.gui) {
-    DoGUI(cli_config, argc, args);
+    return DoGUI(cli_config, argc, args);
   }
 
   return 0;

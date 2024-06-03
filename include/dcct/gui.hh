@@ -1,26 +1,56 @@
 #ifndef DCCT_GUI_HH
 #define DCCT_GUI_HH
-#include <QMainWindow>
+#include <QWidget>
 #include <QLabel>
+#include <QSlider>
+#include <QLineEdit>
 #include <QPushButton>
+#include <QProgressBar>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QBoxLayout>
+#include <dcct/specifiers.hh>
 
 namespace dcct {
-  class Tester : public QMainWindow {
-      Q_OBJECT
+  class GUI : public QWidget {
+    Q_OBJECT
 
-      int32_t mButtonPressedAmt;
+    public:
+      GUI(dcct::ActuatorSpecifier& initial_actuator,
+          std::string initial_filepath);
+      ~GUI() = default;
 
-      QLabel* mpLabel;
-      QPushButton* mpPushButton;
+    private:
+      void buildFloatingWindows();
+      void buildToolbar();
+      void buildProgressbar();
+      void buildGraphicalSpace();
+      void addConnections();
 
-      void updateLabelText();
+      dcct::ActuatorSpecifier& initial_actuator;
+      std::string initial_filepath;
 
-  public:
-      Tester(QWidget* parent = nullptr);
-      ~Tester() = default;
+      QBoxLayout* layout = nullptr;
+      QFileDialog* open_image_dialog = nullptr;
+      QMessageBox* alert_dialog = nullptr;
+      QProgressBar* progressbar = nullptr;
 
-  signals:
-      void sigLabelTextUpdated(std::string_view);
+      QSlider* block_size_slider = nullptr;
+      QLabel* block_size_label = nullptr;
+      QSlider* quality_slider = nullptr;
+      QLabel* quality_label = nullptr;
+      QLineEdit* image_line_edit = nullptr;
+      QLabel* image_label = nullptr;
+      QPushButton* open_image_button = nullptr;
+      QPushButton* compress_image_button = nullptr;
+      QLabel* original_image = nullptr;
+      QLabel* compressed_image = nullptr;
+
+      void userWantsToOpenImage();
+      void userWantsToCompressImage();
+      void userChangedBlockSize();
+      void userChangedQuality();
+    signals:
   };
 }
 #endif//DCCT_GUI_HH

@@ -1,5 +1,4 @@
 #include <dcct/logging.hh>
-#include <dcct/timer.hh>
 #include <dcct/compression.hh>
 #include <dcct/fftw_actuator.hh>
 #include <dcct/slow_actuator.hh>
@@ -112,23 +111,28 @@ inline void CompressChannels(stbi_uc* input_data,
                              const uint32_t& channels,
                              ActuatorImpl& actuator,
                              const uint32_t& blockSize,
-                             const uint32_t& quality) {
+                             const uint32_t& quality,
+                             std::function<void (uint32_t)> set_progressbar_length = nullptr,
+                             std::function<void ()> increment_progressbar = nullptr) {
   uint32_t dx = channels;
   uint32_t dy = dx * M;
   Eigen::MatrixXd matrix(N, M);
-  dcct::Timer timer;
-  timer.reset();
+  if (set_progressbar_length != nullptr)
+    set_progressbar_length(channels);
   for (uint32_t i = 0; i < channels; ++i) {
     CompressChannel(input_data + i, output_data + i,
                     matrix, N, M, actuator,
                     blockSize, quality, dx, dy);
-    timer.round("Processed a channel");
+    if (increment_progressbar != nullptr)
+      increment_progressbar();
   }
 }
 
 bool dcct::CompressImage(const std::string& input_filepath,
                          const std::string& output_filepath,
-                         const dcct::ActuatorSpecifier& specifier) {
+                         const dcct::ActuatorSpecifier& specifier,
+                         std::function<void (uint32_t)> set_progressbar_length,
+                         std::function<void ()> increment_progressbar) {
   if (!std::filesystem::exists(input_filepath)) {
     return false;
   }
@@ -141,25 +145,21 @@ bool dcct::CompressImage(const std::string& input_filepath,
   stbi_uc* output_data = (stbi_uc*) malloc (sizeof(stbi_uc) * width * height * channels);
   if (output_data == nullptr)
     return false;
-  
-  dcct::LogInfo("width: " + std::to_string(width));
-  dcct::LogInfo("height: " + std::to_string(height));
-  dcct::LogInfo("channels: " + std::to_string(channels));
 
   switch (specifier.type) {
-    case specifier.SLOW: {
+    case dcct::ActuatorSpecifier::SLOW: {
       dcct::SlowActuator actuator;
-      CompressChannels(input_data, output_data, height, width, channels, actuator, specifier.blockSize, specifier.quality);
+      CompressChannels(input_data, output_data, height, width, channels, actuator, specifier.blockSize, specifier.quality, set_progressbar_length, increment_progressbar);
     }; break;
-    case specifier.FAST: {
+    case dcct::ActuatorSpecifier::FAST: {
       dcct::FastActuator actuator;
-      CompressChannels(input_data, output_data, height, width, channels, actuator, specifier.blockSize, specifier.quality);
+      CompressChannels(input_data, output_data, height, width, channels, actuator, specifier.blockSize, specifier.quality, set_progressbar_length, increment_progressbar);
     }; break;
-    case specifier.FFTW: {
+    case dcct::ActuatorSpecifier::FFTW: {
       dcct::FFTWActuator actuator;
-      CompressChannels(input_data, output_data, height, width, channels, actuator, specifier.blockSize, specifier.quality);
+      CompressChannels(input_data, output_data, height, width, channels, actuator, specifier.blockSize, specifier.quality, set_progressbar_length, increment_progressbar);
     }; break;
-    case specifier.NONE: {
+    case dcct::ActuatorSpecifier::NONE: {
       dcct::RaiseFatalError("actuator not specified");
     }; break;
   }
