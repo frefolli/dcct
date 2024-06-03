@@ -45,12 +45,20 @@ def time_addons(report: dict, mode: str = 'LinLog'):
     Ys = Ys * naive_Ys[-1]
     plot_by_mode(mode, Xs, Ys, label='N^3')
   
-  lib_Xs, lib_Ys = get_xy(report, 'dcct::FFTWActuator')
-  if lib_Xs is not None:
-    Xs = lib_Xs.astype(numpy.float64)
+  fftw_Xs, fftw_Ys = get_xy(report, 'dcct::FFTWActuator')
+  if fftw_Xs is not None:
+    Xs = fftw_Xs.astype(numpy.float64)
     Ys = numpy.power(Xs, 2) * numpy.log(Xs)
     Ys = Ys / Ys[-1]
-    Ys = Ys * lib_Ys[-1]
+    Ys = Ys * fftw_Ys[-1]
+    plot_by_mode(mode, Xs, Ys, label='N^2 LognN')
+  
+  pocketfft_Xs, pocketfft_Ys = get_xy(report, 'dcct::PocketFFTActuator')
+  if pocketfft_Xs is not None:
+    Xs = pocketfft_Xs.astype(numpy.float64)
+    Ys = numpy.power(Xs, 2) * numpy.log(Xs)
+    Ys = Ys / Ys[-1]
+    Ys = Ys * pocketfft_Ys[-1]
     plot_by_mode(mode, Xs, Ys, label='N^2 LognN')
 
 def plot_report(report: dict, mode: str = 'LinLog'):
