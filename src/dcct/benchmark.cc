@@ -3,7 +3,7 @@
 #include <dcct/actuator.hh>
 #include <dcct/timer.hh>
 #include <dcct/matrix.hh>
-#include <dcct/slow_actuator.hh>
+#include <dcct/pocketfft_actuator.hh>
 #include <dcct/fast_actuator.hh>
 #include <dcct/fftw_actuator.hh>
 #include <json/json.h>
@@ -174,8 +174,8 @@ void dcct::ExecuteBenchmark(dcct::Report& report, const dcct::Benchmark& benchma
     dcct::LogInfo("Generating a Matrix: " + std::to_string(matrix_specifier.N) + "x" + std::to_string(matrix_specifier.M));
     dcct::FromMatrixSpecifier(benchmark_matrix, matrix_specifier);
 
-    // RunIfNotAlready<dcct::SlowActuator>(report, benchmark_matrix);
     RunIfNotAlready<dcct::FastActuator>(report, benchmark_matrix);
     RunIfNotAlready<dcct::FFTWActuator>(report, benchmark_matrix);
+    RunIfNotAlready<dcct::PocketFFTActuator>(report, benchmark_matrix);
   }
 }

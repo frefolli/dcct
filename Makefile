@@ -28,8 +28,13 @@ install:
 	cp -r include/* ${DESTDIR}/usr/local/include/
 	cp -r dcct.pc ${DESTDIR}/usr/local/share/pkgconfig
 
-run:
-	./builddir/main.exe
+fftw:
+	./builddir/main.exe -I -a fftw
+	./builddir/main.exe -R -i output.Y.bin
+
+pocketfft:
+	./builddir/main.exe -I -a pocketfft
+	./builddir/main.exe -R -i output.Y.bin
 
 docs:
 	make -C ./doc
