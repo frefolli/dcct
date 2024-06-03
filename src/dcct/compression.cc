@@ -1,6 +1,8 @@
 #include <dcct/logging.hh>
 #include <dcct/compression.hh>
+#include <dcct/timer.hh>
 #include <dcct/fftw_actuator.hh>
+#include <dcct/pocketfft_actuator.hh>
 #include <dcct/slow_actuator.hh>
 #include <dcct/fast_actuator.hh>
 #include <cmath>
@@ -137,14 +139,19 @@ bool dcct::CompressImage(const std::string& input_filepath,
     return false;
   }
 
+  Timer timer;
+  timer.reset();
+
   int width, height, channels;
   stbi_uc* input_data = stbi_load(input_filepath.c_str(), &width, &height, &channels, 0);
   if (input_data == nullptr)
     return false;
+  timer.round("Read image from filesystem");
 
   stbi_uc* output_data = (stbi_uc*) malloc (sizeof(stbi_uc) * width * height * channels);
   if (output_data == nullptr)
     return false;
+  timer.round("Allocated space for output");
 
   switch (specifier.type) {
     case dcct::ActuatorSpecifier::SLOW: {
@@ -159,11 +166,18 @@ bool dcct::CompressImage(const std::string& input_filepath,
       dcct::FFTWActuator actuator;
       CompressChannels(input_data, output_data, height, width, channels, actuator, specifier.blockSize, specifier.quality, set_progressbar_length, increment_progressbar);
     }; break;
+    case dcct::ActuatorSpecifier::POCKETFFT: {
+      dcct::PocketFFTActuator actuator;
+      CompressChannels(input_data, output_data, height, width, channels, actuator, specifier.blockSize, specifier.quality, set_progressbar_length, increment_progressbar);
+    }; break;
     case dcct::ActuatorSpecifier::NONE: {
       dcct::RaiseFatalError("actuator not specified");
     }; break;
   }
+  timer.round("Compressed image with an Actuator");
+
   stbi_image_free(input_data);
+  timer.round("Freed space of input");
   
   std::string ext = std::filesystem::path(output_filepath).extension();
   std::string png = ".png";
@@ -178,8 +192,10 @@ bool dcct::CompressImage(const std::string& input_filepath,
   } else {
     dcct::RaiseFatalError("wrong image extension '" + ext + "'");
   }
+  timer.round("Wrote image to filesystem");
   
   stbi_image_free(output_data);
+  timer.round("Freed space of output");
 
   return true;
 }
