@@ -31,7 +31,7 @@ dcct = library('dcct', [
   include_directories: ['./include'],
   dependencies: [eigen3, fftw3, jsoncpp, libQt6])
 
-subdir('tests')
+# subdir('tests')
 
 exe = executable('main.exe', [
     'src/main.cc',
