@@ -1,0 +1,93 @@
+\documentclass[a4paper,11pt,oneside, table]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{imakeidx}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{pdfpages}
+\usepackage{csquotes}
+\usepackage{caption}
+\captionsetup[table]{labelfont=it}
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+\usepackage{listings}
+\usepackage{listings-cpp}
+
+\newtheorem{nota}{Nota}
+
+\usepackage[italian]{babel}
+\usepackage[
+  backend=bibtex,
+  style=numeric,
+  sorting=ydnt
+  ]{biblatex}
+\addbibresource{quotes.bib}
+\makeindex
+
+\newcommand{\putimage}[3] {
+	\begin{figure}[H]
+	    \centering
+	    \includegraphics[width=0.70\linewidth]{#1}
+	    \caption{#2}\label{#3}
+	\end{figure}
+}
+
+\newcommand{\putimagebig}[3] {
+	\begin{figure}[H]
+	    \centering
+	    \includegraphics[width=0.99\linewidth]{#1}
+	    \caption{#2}\label{#3}
+	\end{figure}
+}
+
+\begin{document}
+    \begin{titlepage}
+        \noindent
+        \begin{minipage}[t]{0.19\textwidth}
+            \vspace{-4mm}{\includegraphics[scale=1.15]{logo_unimib.pdf}}
+        \end{minipage}
+        \begin{minipage}[t]{0.81\textwidth}
+        {
+                \setstretch{1.42}
+                {\textsc{Università degli Studi di Milano - Bicocca}} \\
+                \textbf{Scuola di Scienze} \\
+                \textbf{Dipartimento di Informatica, Sistemistica e Comunicazione} \\
+                \textbf{Corso di laurea magistrale in Informatica} \\
+                \par
+        }
+        \end{minipage}
+    	\vspace{40mm}
+    	\begin{center}
+            {\LARGE{
+                    \setstretch{1.2}
+                    \textbf{Relazione di Metodi del Calcolo Scientifico - Progetto 2}
+                    \par
+            }}
+        \end{center}
+        
+        \vspace{50mm}
+        
+        \vspace{15mm}
+
+        \begin{flushright}
+            {\large \textbf{Relazione di:}} \\
+            \large{Refolli Francesco}
+            \large{865955}
+        \end{flushright}
+        
+        \vspace{40mm}
+        \begin{center}
+            {\large{\bf Anno Accademico 2023-2024}}
+        \end{center}
+        \restoregeometry
+    \end{titlepage}
+
+    \printindex
+    \tableofcontents
+    \renewcommand{\baselinestretch}{1.5}
+
+\printbibliography[title={Bibliografia}]
+\end{document}

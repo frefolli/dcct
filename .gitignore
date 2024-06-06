@@ -2,6 +2,6 @@ builddir
 .vscode
 *.mat
 *.bin
-*.png
+./*.png
 *.json
 __pycache__
