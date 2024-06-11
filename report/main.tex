@@ -15,6 +15,8 @@
 
 \usepackage{listings}
 \usepackage{listings-cpp}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \newtheorem{nota}{Nota}
 
@@ -24,23 +26,45 @@
   style=numeric,
   sorting=ydnt
   ]{biblatex}
-\addbibresource{quotes.bib}
+\addbibresource{refs.bib}
 \makeindex
 
-\newcommand{\putimage}[3] {
+\newcommand{\putimage}[4] {
 	\begin{figure}[H]
 	    \centering
-	    \includegraphics[width=0.70\linewidth]{#1}
+	    \includegraphics[width={#4}\linewidth]{#1}
 	    \caption{#2}\label{#3}
 	\end{figure}
 }
 
-\newcommand{\putimagebig}[3] {
-	\begin{figure}[H]
+\newcommand{\putsubimage}[5] {
+  \begin{minipage}{{#4}\linewidth}
 	    \centering
-	    \includegraphics[width=0.99\linewidth]{#1}
+      \includegraphics[width={#5}\linewidth]{#1}
 	    \caption{#2}\label{#3}
-	\end{figure}
+	\end{minipage}
+}
+
+\newcommand{\putimagecouple}[2] {
+  \begin{figure}[!htb]
+      \centering
+      #1
+      \hspace{0.5cm}
+      #2
+  \end{figure}
+}
+
+\newcommand{\putimagequadruple}[4] {
+  \begin{figure}[!htb]
+      \centering
+      #1
+      \hspace{0.5cm}
+      #2
+      \linebreak
+      #3
+      \hspace{0.5cm}
+      #4
+  \end{figure}
 }
 
 \begin{document}
@@ -88,6 +112,41 @@
     \printindex
     \tableofcontents
     \renewcommand{\baselinestretch}{1.5}
+
+\section{Introduzione}
+
+%Introduzione con la consegna e le tecnologie utilizzate (linguaggio e librerie).
+%FFTW e' una libreria free and open source con una interfaccia meh (maggiormente utilizzata sotto binding in Julia, cita studio fatto in Julia in Esperimenti).
+%PocketFFT e' una libreria free and open source con una interfaccia non documentata ma molto promettente che viene usata da scipy (cita studio fatto in Python in Esperimenti).
+
+\section{Architettura}
+
+%Sezione con la struttura del codice del progetto con
+%- un diagramma d2 TALA
+%- con la spiegazione del tratto Actuator
+%- gli snippet di codice delle DCT implementate dalle singole strutture
+%- gli snippet di codice delle IDCT implementate dalle singole strutture
+%- uno snippet per mostrare che DCT2,IDCT2 sono "naive"
+%Gli snippet sarebbe meglio a questo punto farli in C++ con listings per mostrare i binding e cose cosi', pero' magari diminuendo il carattere dello stile
+
+\section{Esperimenti}
+
+%brevissima introduzione agli esperimenti che sono stati condotti
+
+\subsection{Test di Velocit\`a}
+
+%in questa sezione analizziamo la velocita' delle librerie
+%in particolare devo dire come ho trovato le matrici (le ho create io)
+%e mostrare il grafo semilogy dei tempi di esecuzione
+%quindi dire che si il mio e' N^3 e il loro e' N^2 LogN
+%PocketFFT e' piu' veloce di FFTW anche se ha problemi con matrici non quadrate (ai fini della compressione di immagini non cambia un casu)
+
+\subsection{Compressione di Immagini}
+
+%Faccio un paio di esempi con matrici in toni di grigio date dal prof
+%Quindi dico che ho introdotto il supporto a matrici a colori (perche' sono un perfezionista) separando i canali e comprimendoli singolarmente poi riunendoli (magari una piccola immagine schematica puo' aiutare)
+%Quindi faccio un esempio di immagine a colori (magari una ferroviaria) compressa in questo modo
+%Eventualmente faccio presente il fenomeno di Gibbs rendendo i blocchi piu' grossi e facendo vedere che con quelli piu' grossi si comprime in modo diverso (piu' veloce per certi versi e spiego il perche')
 
 \printbibliography[title={Bibliografia}]
 \end{document}

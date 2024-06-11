@@ -38,3 +38,10 @@ pocketfft:
 
 docs:
 	make -C ./doc
+
+report/main.pdf: report/main.tex report/images/*
+	make -C report
+	cp report/main.pdf /mnt/c/Users/franc/Desktop/dasscc.pdf
+
+edit:
+	lvim report/main.tex
