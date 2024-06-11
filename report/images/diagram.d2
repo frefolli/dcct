@@ -1,0 +1,11 @@
+Actuator: {
+  shape: class
+  dct: (X: Matrix) -> Matrix
+  dct2: (X: Matrix) -> Matrix
+  idct: (Y: Matrix) -> Matrix
+  idct2: (Y: Matrix) -> Matrix
+}
+
+SlowActuator -> Actuator: implements
+FFTWActuator -> Actuator: implements
+PocketFFTActuator -> Actuator: implements

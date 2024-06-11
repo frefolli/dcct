@@ -115,15 +115,154 @@
 
 \section{Introduzione}
 
-%Introduzione con la consegna e le tecnologie utilizzate (linguaggio e librerie).
-%FFTW e' una libreria free and open source con una interfaccia meh (maggiormente utilizzata sotto binding in Julia, cita studio fatto in Julia in Esperimenti).
-%PocketFFT e' una libreria free and open source con una interfaccia non documentata ma molto promettente che viene usata da scipy (cita studio fatto in Python in Esperimenti).
+Lo scopo del progetto \`e implementare le operazioni di Discrete Cosine Transform e confrontare i tempi di esecuzione con quelli di una libreria. Quindi implementare una versione semplificata della compressione di immagini JPEG e visualizzare i risultati della compressione.
+
+\paragraph{Tecnologie utilizzate}
+
+Per l'implementazione si \`e scelto di sviluppare una libreria in C++ con Eigen, una nota libreria Free and Open Source per la gestione di  matrici dense.
+Le implementazioni da libreria della DCT che verranno comparate sono:
+
+\begin{itemize}
+  \item \textbf{FFTW} \`e una libreria free and open source scritta in linguaggio C riccamente documentata che supporta DCT in modalit\`a fast con la possibilit\`a di creare degli \textit{execution plan} e mantenere informazioni in memoria (\textit{wisdom}) per ottimizzare ulteriormente le operazioni. \`E molto popolare per via della sua velocit\`a, flessibilit\`a e i binding per alcuni dei linguaggi di programmazione maggiormente utilizzati per il calcolo scientifico (Julia e Rust).
+  \item \textbf{PocketFFT} \`e una libreria free and open source in linguaggio C/C++ con un'interfaccia non adeguatamente documentata ma molto promettente che viene usata da Scipy (libreria Python per il calcolo scientifico) come implementazione di default dalle ultime release invece della pi\`u nota \textit{fftpack} (libreria Fortran di cui \textit{pocketfft} \`e una reimplementazione).
+\end{itemize}
+
+Per verificare la qualit\`a delle implementazioni di funzioni e binding sono stati costruiti dei test basati sull'esecuzione della DCT sulle matrici di esempio presentate nella consegna.
 
 \section{Architettura}
 
+\`E stato definito un \textbf{tratto} per un \textbf{Actuator} che applica le operazioni di DCT e quindi le strutture che implementano le operazioni o i binding alle librerie associate.
+
+\putimage{images/diagram.png}{Diagramma di Strutture e Tratti d'Interesse}{png:diagram_of_structures}{0.99}
+
+Per rendere pi\`u fair la fase di comparazione e pi\`u semplice il testing si \`e deciso di applicare la normalizzazione presentata dalla Consegna anche ai binding. Per facilitare questa operazione tutte le implementazioni della DCT a due dimensioni sono come segue:
+
+\begin{lstlisting}[language=C++]
+Eigen::MatrixXd dcct::FFTWActuator::dct2(Eigen::MatrixXd& X) {
+  Eigen::MatrixXd Y = dct(X).transpose();
+  X = dct(Y).transpose();
+  return X;
+}
+\end{lstlisting}
+
+Sono state inoltre implementate le operazioni inverse \textbf{IDCT}, \textbf{IDCT2} per tutte le implementazioni di Actuator sia perch\`e sono necessarie nella successiva sperimentazione nella compressione delle immagini sia perch\`e permettono di avere ulteriori test che confrontano la correttezza delle implementazioni velocizzando lo sviluppo.
+
+\subsection{Slow}
+
+Si tratta di una implementazione da manuale della Discrete Cosine Trasform che applica anche la normalizzazione.
+
+\begin{lstlisting}[language=C++]
+Eigen::MatrixXd dcct::SlowActuator::dct(Eigen::MatrixXd& X) {
+  uint32_t N = X.rows(), M = X.cols();
+  Eigen::MatrixXd Y(N, M);
+
+  double_t pi_over_M = std::numbers::pi / (double_t) M;
+  double_t sqrt_of_two_over_M = std::sqrt(2.0 / (double_t) M);
+  double_t one_over_sqrt_of_two = std::sqrt(0.5);
+
+  for (uint32_t i = 0; i < N; ++i) {
+    for (uint32_t k = 0; k < M; ++k) {
+      double_t sum = 0;
+      double_t _k_pi_over_M = pi_over_M * k;
+      for (uint32_t j = 0; j < M; j++) {
+        sum += std::cos(_k_pi_over_M * (j + 0.5)) * X.coeff(i, j);
+      }
+      Y.coeffRef(i, k) = sum * sqrt_of_two_over_M;
+    }
+    Y.coeffRef(i, 0) *= one_over_sqrt_of_two;
+  }
+  return Y;
+}
+\end{lstlisting}
+
+\subsection{Fast}
+
+Il nome \textit{Fast} non si riferisce all'applicazione della Fast Fourier Transform ma bens\`i all'utilizzo avanzato di Eigen per ottimizzare i calcoli.
+Questa \`e l'implementazione \textit{naive} di bandiera.
+
+\begin{lstlisting}[language=C++]
+Eigen::MatrixXd dcct::FastActuator::dct(Eigen::MatrixXd& X) {
+  uint32_t N = X.rows(), M = X.cols();
+  Eigen::MatrixXd Y(N, M);
+
+  double_t pi_over_M = std::numbers::pi / (double_t)M;
+  double_t sqrt_of_two_over_M = std::sqrt(2.0 / (double_t) M);
+  double_t one_over_sqrt_of_two = std::sqrt(0.5);
+  Eigen::VectorXd Z(M);
+  for (uint32_t j = 0; j < M; ++j) {
+    Z.coeffRef(j) = (j + 0.5) * pi_over_M;
+  }
+
+  Eigen::RowVectorXd W;
+  X.transposeInPlace();
+  for (uint32_t k = 0; k < M; ++k) {
+    W = (Z * k).array().cos();
+    Y.col(k) = (W * X).colwise().sum() * sqrt_of_two_over_M;
+  }
+  Y.col(0) *= one_over_sqrt_of_two;
+
+  return Y;
+}
+\end{lstlisting}
+
+\subsection{FFTW}
+
+\begin{lstlisting}[language=C++]
+Eigen::MatrixXd dcct::FFTWActuator::dct(Eigen::MatrixXd& X) {
+  uint32_t N = X.rows(), M = X.cols();
+  Eigen::MatrixXd Y(N, M);
+  double_t sqrt_of_one_half_over_N = std::sqrt(0.5 / (double_t) M);
+  double_t one_over_sqrt_of_two = std::sqrt(0.5);
+
+  int dims[1] = {(int)M}; 
+  fftw_r2r_kind kinds[1] = {FFTW_REDFT10};
+  fftw_plan plan = fftw_plan_many_r2r(
+    1, dims, N, const_cast<double*>(X.data()),
+    dims, N, 1, Y.data(),
+    dims, N, 1, kinds,
+    FFTW_PRESERVE_INPUT);
+  fftw_execute_r2r(plan, const_cast<double*>(X.data()), Y.data());
+  fftw_destroy_plan(plan);
+
+  Y *= sqrt_of_one_half_over_N;
+  Y.col(0) *= one_over_sqrt_of_two;
+  return Y;
+}
+\end{lstlisting}
+
+\subsection{PocketFFT}
+
+\begin{lstlisting}[language=C++]
+#define POCKETFFT_DCT2 2
+#define POCKETFFT_SINGLETHREAD 1
+
+Eigen::MatrixXd dcct::PocketFFTActuator::dct(Eigen::MatrixXd& X) {
+  uint32_t N = X.rows(), M = X.cols();
+  Eigen::MatrixXd Y(N, M);
+  double_t sqrt_of_two_over_M = std::sqrt(0.5 / (double_t) M);
+  double_t one_over_sqrt_of_two = std::sqrt(0.5);
+
+  const pocketfft::shape_t shape = {N, M};
+  const pocketfft::stride_t stride_in = {sizeof(double_t),
+                                         (long)(sizeof(double_t) * M)};
+  const pocketfft::stride_t stride_out = {sizeof(double_t),
+                                          (long)(sizeof(double_t) * M)};
+  const pocketfft::shape_t axes = {1};
+  pocketfft::dct<double_t>(shape, stride_in,
+                           stride_out, axes,
+                           POCKETFFT_DCT2, X.data(),
+                           Y.data(), 1,
+                           false, POCKETFFT_SINGLETHREAD);
+
+  Y *= sqrt_of_two_over_M;
+  Y.col(0) *= one_over_sqrt_of_two;
+  return Y;
+}
+\end{lstlisting}
+
 %Sezione con la struttura del codice del progetto con
-%- un diagramma d2 TALA
-%- con la spiegazione del tratto Actuator
+%-OK un diagramma d2 TALA
+%-OK con la spiegazione del tratto Actuator
 %- gli snippet di codice delle DCT implementate dalle singole strutture
 %- gli snippet di codice delle IDCT implementate dalle singole strutture
 %- uno snippet per mostrare che DCT2,IDCT2 sono "naive"
