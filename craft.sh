@@ -1,10 +1,10 @@
 F=30
 d=29
-baseimg=resources/images/lena.bmp
+baseimg=resources/images/input.png
 
 function scale_image() {
   N=$1
-  convert $baseimg -resize $Nx$N /tmp/dcct.benchmark.png
+  magick /tmp/dcct.benchmark.png -resize $Nx$N /tmp/dcct.benchmark.png
 }
 
 function benchmark_method() {
@@ -19,14 +19,16 @@ function benchmark_method() {
 function benchmark_round() {
   N=$1
   scale_image $N
+  echo "Scaled image to $Nx$N"
   benchmark_method $N pocketfft
   benchmark_method $N fftw
 }
 
 function main() {
+  cp $baseimg /tmp/dcct.benchmark.png
   echo "Method,N,Time" > benchmark.fftw.log
   echo "Method,N,Time" > benchmark.pocketfft.log
-  for N in $(seq 100 100 1000);
+  for N in $(seq 100 200 4100);
   do
     benchmark_round $N
   done
