@@ -3,7 +3,7 @@ import sys
 import argparse
 import logging
 import numpy
-from pesto.loaders import JsonLoader
+from pesto.loaders import JsonLoader, CsvLoader
 from pesto.plotters import FunctionalPlotter
 from pesto.crafters import BenchmarkReportCrafter
 
@@ -17,7 +17,6 @@ def do_benchmark(config: argparse.Namespace) -> None:
   data = JsonLoader.run(path=config.benchmarkpath)
   reports = BenchmarkReportCrafter.run(input=data)
   x='N'
-  #y='error'
   y='elapsed'
   FunctionalPlotter.run(input={f"benchmark-{x}-{y}": reports},
                         crafter=None,
@@ -32,16 +31,34 @@ def do_benchmark(config: argparse.Namespace) -> None:
                           'target': 'dcct::PocketFFTActuator',
                           'label': 'N^2 LogN',
                           'func': FastTrend
-                        },{
-                          'target': 'dcct::FastActuator',
-                          'label': 'N^3',
-                          'func': SlowTrend
-                        }],
+                        }
+                        #,{
+                        #  'target': 'dcct::FastActuator',
+                        #  'label': 'N^3',
+                        #  'func': SlowTrend
+                        #}
+                        ],
+                        outdir=config.plotpath)
+
+def do_compression(config: argparse.Namespace) -> None:
+  reports = {
+    'benchmark-compression': {
+      'fftw': CsvLoader.run(path="benchmark.fftw.log"),
+      'pocketfft': CsvLoader.run(path="benchmark.pocketfft.log")
+    }
+  }
+  x='N'
+  y='Time'
+  FunctionalPlotter.run(input=reports,
+                        crafter=None,
+                        x=x, y=y,
+                        scale=config.scale,
                         outdir=config.plotpath)
 
 if __name__ == "__main__":
   action_map: dict[str, typing.Callable[[argparse.Namespace], None]] = {
     'benchmark': do_benchmark,
+    'compression': do_compression
   }
 
   cli = argparse.ArgumentParser()

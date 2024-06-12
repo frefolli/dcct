@@ -67,6 +67,17 @@
   \end{figure}
 }
 
+\newcommand{\putimagetriple}[3] {
+  \begin{figure}[!htb]
+      \centering
+      #1
+      \hspace{0.3cm}
+      #2
+      \hspace{0.3cm}
+      #3
+  \end{figure}
+}
+
 \algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
 
 \begin{document}
@@ -336,6 +347,8 @@ Di seguito un resoconto sotto forma di pseudocodice dell'attivit\`a di compressi
   \end{algorithmic}
 \end{algorithm}
 
+\pagebreak
+
 \subsection{Interfacce}
 
 L'interfaccia da riga di comando permette sia di comprimere immagini, sia di avviare la GUI, sia di eseguire un benchmark parametrizzato da un file \textit{json} (verr\`a utilizzato in seguito).
@@ -346,28 +359,65 @@ La configurazione della compressione avviene tramite una stringa \textit{actuato
 L'interfaccia GUI permette di selezionare un'immagine dal filesystem, la dimensione del blocco e il treshold di qualit\`a.
 Avviata la compressione con il relativo pulsante, la GUI utilizzer\`a la routine di compressione descritta nella sezione precedente scrivendo l'immagine compressa in \textit{/tmp/dcct.output.png} sia per poterla recuperare sia perch\`e \`e pi\`u semplice utilizzare le immagini in Qt se lette dal filesystem.
 Finita la compressione (avanzamento segnalato da una barra di progressione) l'immagine originale e la versione compressa sono affiancate e debitamente segnalate.
+Infine la GUI di default usa \textbf{PocketFFT} ma con poca difficolt\`a si potrebbe aggiungere .
 
 \putimage{images/interface-gui.png}{Interfaccia GUI in Qt6}{png:interface_gui}{0.99}
 
 \section{Esperimenti}
 
-\subsection{Test di Velocit\`a}
+\subsection{Benchmark DCT 2D}
 
-In questa sezione si analizza la velocit\`a delle librerie e dell'implementazioni naive.
-Le matrici su cui eseguono la DCT 2D sono $N \times N$ generate randomicamente con $N \in [100, 3000]$.
+In questa sezione si analizza la velocit\`a delle librerie e dell'implementazioni naive nella DCT 2D su matrici di grandi dimensioni.
+Le matrici su cui eseguono sono matrici quadrate $N \times N$ generate randomicamente con $N \in [100, 1000]$.
 
 \putimage{images/actuator-trends.png}{Tempi di Esecuzione in scala semilogaritmica}{png:actuator-trends}{0.99}
 
 Sono riportati nel grafico anche gli andamenti teorici affiancati agli andamenti effettivi delle implementazioni.
 Prevedibilmente l'implementazione naive segue un'andamento polinomiale $O(N^3)$ mentre le due librerie sono pi\`u veloci e scalano come $O(N^2 Log N)$.
-In particolare si \`e rilevato come \textit{PocketFFT} sia significativamente pi\`u veloce di \textit{FFTW}.
 
-\subsection{Compressione di Immagini}
+In particolare si \`e rilevato come \textit{PocketFFT} sia significativamente pi\`u veloce di \textit{FFTW}, ma solo in un ambiente di compilazione nativo Linux, sotto WSL si verifica l'opposto.
+Questo probabilmente dipende da ottimizzazioni della libreria PocketFFT che pu\`o fare a compile time e del diverso meccaninsmo di allocazione delle risorse dei due sistemi operativi.
+Il benchmark precedente era limitato alle matrici $1000 \times 1000$ per via della lentezza del metodo "naive".
+Le matrici quadrate questa volta sono generate randomicamente con $N \in [100, 4000]$.
 
-%Faccio un paio di esempi con matrici in toni di grigio date dal prof
-%Quindi dico che ho introdotto il supporto a matrici a colori (perche' sono un perfezionista) separando i canali e comprimendoli singolarmente poi riunendoli (magari una piccola immagine schematica puo' aiutare)
-%Quindi faccio un esempio di immagine a colori (magari una ferroviaria) compressa in questo modo
-%Eventualmente faccio presente il fenomeno di Gibbs rendendo i blocchi piu' grossi e facendo vedere che con quelli piu' grossi si comprime in modo diverso (piu' veloce per certi versi e spiego il perche')
+\putimagecouple
+  {\putsubimage{./images/benchmark-libraries-wsl.png}{Andamenti del Tempo di Esecuzione delle librerie in ambiente WSL}{png:benchmark-libraries-wsl}{0.45}{0.99}}
+  {\putsubimage{./images/benchmark-libraries-linux.png}{Andamenti del Tempo di Esecuzione delle librerie in ambiente Linux}{png:benchmark-libraries-linux}{0.45}{0.99}}
+
+\subsection{Compressione di immagini}
+
+\subsubsection{Immagini in toni di grigio}
+
+\putimage{./images/compression-gs-original.png}{Immagine in grayscale originale}{png:compression-gs-original}{0.45}
+
+Le immagini vengono compresse esattamente come ci si aspetta, all'aumentare del numero di componenti azzerate la qualit\`a dell'immagine scende.
+
+\putimagecouple
+  {\putsubimage{./images/compression-gs-F10-d16.png}{Immagine compressa con F=10 e d=16}{png:compression-gs-F10-d16}{0.45}{0.99}}
+  {\putsubimage{./images/compression-gs-F10-d4.png}{Immagine compressa con F=10 e d=4}{png:compression-gs-F10-d4}{0.45}{0.99}}
+
+Inoltre all'aumentare della dimensione dei blocchi $F$ inizia a presentarsi pi\`u nitidamente il fenomeno di Gibbs (cosiddetto effetto \textbf{Ringing Artifacts}).
+
+\putimagecouple
+  {\putsubimage{./images/compression-gs-F30-d50.png}{Immagine compressa con F=30 e d=50}{png:compression-gs-F30-d50}{0.45}{0.99}}
+  {\putsubimage{./images/compression-gs-F30-d10.png}{Immagine compressa con F=30 e d=10}{png:compression-gs-F30-d10}{0.45}{0.99}}
+
+\subsubsection{Immagini a colori}
+
+Come enunciato nella sezione sull'algoritmo di compressione si possono utilizzare anche immagini a colori.
+
+\putimage{./images/compression-cl-original.png}{Immagine in grayscale originale}{png:compression-cl-original}{0.45}
+
+Nelle immagini a colori si nota pi\`u facilmente la squadrettatura prodotta dalla "quantizzazione" della compressione mentre appare meno evidente il fenomeno di Gibbs.
+
+\putimagecouple
+  {\putsubimage{./images/compression-cl-F30-d50.png}{Immagine compressa con F=30 e d=50}{png:compression-cl-F30-d50}{0.45}{0.99}}
+  {\putsubimage{./images/compression-cl-F30-d10.png}{Immagine compressa con F=30 e d=10}{png:compression-cl-F30-d10}{0.45}{0.99}}
+
+\subsection{Benchmark compressione di immagini}
+
+Per comprendere meglio le ragioni della scelta di \textit{PocketFFT} come attuatore di default si \`e scelto di esguire un benchmark sulla compressione di immagini di grandi dimensioni generate a partire da una immagine di base che viene scalata per ottenere un'immagine da utilizzare nel benchmark.
+Tutte le immagini verranno compresse con $F=30$ e $d=29$.
 
 \printbibliography[title={Bibliografia}]
 \end{document}

@@ -174,7 +174,7 @@ void dcct::ExecuteBenchmark(dcct::Report& report, const dcct::Benchmark& benchma
     dcct::LogInfo("Generating a Matrix: " + std::to_string(matrix_specifier.N) + "x" + std::to_string(matrix_specifier.M));
     dcct::FromMatrixSpecifier(benchmark_matrix, matrix_specifier);
 
-    RunIfNotAlready<dcct::FastActuator>(report, benchmark_matrix);
+    //RunIfNotAlready<dcct::FastActuator>(report, benchmark_matrix);
     RunIfNotAlready<dcct::FFTWActuator>(report, benchmark_matrix);
     RunIfNotAlready<dcct::PocketFFTActuator>(report, benchmark_matrix);
   }

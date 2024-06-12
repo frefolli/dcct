@@ -5,3 +5,4 @@ builddir
 ./*.png
 *.json
 __pycache__
+*.log
