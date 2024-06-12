@@ -192,7 +192,10 @@ int DoCompress(CliConfig& cli_config) {
   if (cli_config.dry_run)
     return 0;
   
-  assert(dcct::CompressImage(cli_config.input_filepath, cli_config.output_filepath, actuator_specifier));
+  dcct::CompressionEvent result = dcct::CompressImage(cli_config.input_filepath, cli_config.output_filepath, actuator_specifier);
+  if (result != dcct::CompressionEvent::OK) {
+    dcct::RaiseFatalError(dcct::ToString(result));
+  }
   return 0;
 }
 

@@ -130,13 +130,13 @@ inline void CompressChannels(stbi_uc* input_data,
   }
 }
 
-bool dcct::CompressImage(const std::string& input_filepath,
-                         const std::string& output_filepath,
-                         const dcct::ActuatorSpecifier& specifier,
-                         std::function<void (uint32_t)> set_progressbar_length,
-                         std::function<void ()> increment_progressbar) {
+dcct::CompressionEvent dcct::CompressImage(const std::string& input_filepath,
+                                           const std::string& output_filepath,
+                                           const dcct::ActuatorSpecifier& specifier,
+                                           std::function<void (uint32_t)> set_progressbar_length,
+                                           std::function<void ()> increment_progressbar) {
   if (!std::filesystem::exists(input_filepath)) {
-    return false;
+    return dcct::CompressionEvent::CANNOT_OPEN;
   }
 
   Timer timer;
@@ -144,13 +144,15 @@ bool dcct::CompressImage(const std::string& input_filepath,
 
   int width, height, channels;
   stbi_uc* input_data = stbi_load(input_filepath.c_str(), &width, &height, &channels, 0);
-  if (input_data == nullptr)
-    return false;
+  if (input_data == nullptr) {
+    dcct::LogWarning(stbi_failure_reason());
+    return dcct::CompressionEvent::CANNOT_OPEN;
+  }
   timer.round("Read image from filesystem");
 
   stbi_uc* output_data = (stbi_uc*) malloc (sizeof(stbi_uc) * width * height * channels);
   if (output_data == nullptr)
-    return false;
+    return dcct::CompressionEvent::CANNOT_ALLOCATE;
   timer.round("Allocated space for output");
 
   switch (specifier.type) {
@@ -171,7 +173,7 @@ bool dcct::CompressImage(const std::string& input_filepath,
       CompressChannels(input_data, output_data, height, width, channels, actuator, specifier.blockSize, specifier.quality, set_progressbar_length, increment_progressbar);
     }; break;
     case dcct::ActuatorSpecifier::NONE: {
-      dcct::RaiseFatalError("actuator not specified");
+      return dcct::CompressionEvent::CANNOT_COMPRESS;
     }; break;
   }
   timer.round("Compressed image with an Actuator");
@@ -190,12 +192,25 @@ bool dcct::CompressImage(const std::string& input_filepath,
   } else if (ext == jpg) {
     stbi_write_jpg(output_filepath.c_str(), width, height, channels, output_data, 100);
   } else {
-    dcct::RaiseFatalError("wrong image extension '" + ext + "'");
+    return dcct::CompressionEvent::CANNOT_WRITE;
   }
   timer.round("Wrote image to filesystem");
   
   stbi_image_free(output_data);
   timer.round("Freed space of output");
 
-  return true;
+  return dcct::CompressionEvent::OK;
+}
+
+std::string dcct::ToString(dcct::CompressionEvent event) {
+  #define TRANSLATE(Value, String) \
+    case dcct::CompressionEvent::Value: return String;
+
+  switch (event) {
+    TRANSLATE(OK, "Compressed correctly")
+    TRANSLATE(CANNOT_OPEN, "Cannot compress: unable to open file with stbi")
+    TRANSLATE(CANNOT_COMPRESS, "Cannot compress")
+    TRANSLATE(CANNOT_WRITE, "Cannot compress: unable to write file with stbi")
+    TRANSLATE(CANNOT_ALLOCATE, "Cannot compress: unable to allocate for output")
+  }
 }

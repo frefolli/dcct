@@ -144,11 +144,14 @@ void dcct::GUI::userWantsToCompressImage() {
     this->progressbar->setValue(this->progressbar->value() + 1);
   };
   this->progressbar->show();
-  dcct::CompressImage(input_filepath,
-                      output_filepath,
-                      specifier,
-                      set_progressbar_length,
-                      increment_progressbar);
+  dcct::CompressionEvent result = dcct::CompressImage(input_filepath,
+                                                      output_filepath,
+                                                      specifier,
+                                                      set_progressbar_length,
+                                                      increment_progressbar);
+  if (result != dcct::CompressionEvent::OK) {
+    dcct::RaiseFatalError(dcct::ToString(result));
+  }
 
   this->original_image->setPixmap(QPixmap(ToQString(input_filepath)).scaledToWidth(512));
   this->compressed_image->setPixmap(QPixmap(ToQString(output_filepath)).scaledToWidth(512));
