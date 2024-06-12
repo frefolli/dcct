@@ -418,6 +418,11 @@ Nelle immagini a colori si nota pi\`u facilmente la squadrettatura prodotta dall
 
 Per comprendere meglio le ragioni della scelta di \textit{PocketFFT} come attuatore di default si \`e scelto di esguire un benchmark sulla compressione di immagini di grandi dimensioni generate a partire da una immagine di base che viene scalata per ottenere un'immagine da utilizzare nel benchmark.
 Tutte le immagini verranno compresse con $F=30$ e $d=29$.
+Ancora una volta abbiamo una discrepanza di performance tra WSL e Linux per PocketFFT: se sotto Linux c'\`e una differenza abissale tra le due librerie, su WSL FFTW risulta appena lievemente migliore a PocketFFT.
+
+\putimagecouple
+  {\putsubimage{./images/benchmark-compression-wsl.png}{Andamenti del Tempo di Esecuzione delle librerie in ambiente WSL}{png:benchmark-compression-wsl}{0.45}{0.99}}
+  {\putsubimage{./images/benchmark-compression-linux.png}{Andamenti del Tempo di Esecuzione delle librerie in ambiente Linux}{png:benchmark-compression-linux}{0.45}{0.99}}
 
 \printbibliography[title={Bibliografia}]
 \end{document}

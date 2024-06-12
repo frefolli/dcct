@@ -26,9 +26,9 @@ function benchmark_round() {
 
 function main() {
   cp $baseimg /tmp/dcct.benchmark.png
-  echo "Method,N,Time" > benchmark.fftw.log
-  echo "Method,N,Time" > benchmark.pocketfft.log
-  for N in $(seq 100 200 4100);
+  echo "Method,N,Time" >> benchmark.fftw.log
+  echo "Method,N,Time" >> benchmark.pocketfft.log
+  for N in $(seq 4100 200 4100);
   do
     benchmark_round $N
   done
