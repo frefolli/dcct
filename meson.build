@@ -7,7 +7,7 @@ eigen3 = dependency('eigen3')
 fftw3 = dependency('fftw3')
 jsoncpp = dependency('jsoncpp')
 qt6 = import('qt6')
-libQt6 = dependency('qt6', modules : ['Widgets', 'Gui'])
+libQt6 = dependency('qt6', modules : ['Core', 'Widgets', 'Gui'])
 
 processed = qt6.preprocess(
   moc_headers : './include/dcct/gui.hh',
@@ -31,7 +31,7 @@ dcct = library('dcct', [
   include_directories: ['./include'],
   dependencies: [eigen3, fftw3, jsoncpp, libQt6])
 
-# subdir('tests')
+subdir('tests')
 
 exe = executable('main.exe', [
     'src/main.cc',

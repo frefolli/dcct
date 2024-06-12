@@ -131,7 +131,7 @@ void dcct::GUI::userWantsToCompressImage() {
   std::string output_filepath = std::string(std::filesystem::temp_directory_path()) + "/dcct.output.png";
 
   dcct::ActuatorSpecifier specifier = {
-    .type = dcct::ActuatorSpecifier::Type::POCKETFFT,
+    .type = dcct::ActuatorSpecifier::Type::FFTW,
     .blockSize = (uint32_t) this->block_size_slider->value(),
     .quality = (uint32_t) this->quality_slider->value()
   };

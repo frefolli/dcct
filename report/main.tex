@@ -67,6 +67,8 @@
   \end{figure}
 }
 
+\algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
+
 \begin{document}
     \begin{titlepage}
         \noindent
@@ -156,9 +158,11 @@ Eigen::MatrixXd dcct::SlowActuator::dct(Eigen::MatrixXd& X) {
   uint32_t N = X.rows(), M = X.cols();
   Eigen::MatrixXd Y(N, M);
 
-  double_t pi_over_M = std::numbers::pi / (double_t) M;
+  // Coefficienti di normalizzazione
   double_t sqrt_of_two_over_M = std::sqrt(2.0 / (double_t) M);
   double_t one_over_sqrt_of_two = std::sqrt(0.5);
+  // Precalcolo di pi/M
+  double_t pi_over_M = std::numbers::pi / (double_t) M;
 
   for (uint32_t i = 0; i < N; ++i) {
     for (uint32_t k = 0; k < M; ++k) {
@@ -185,9 +189,11 @@ Eigen::MatrixXd dcct::FastActuator::dct(Eigen::MatrixXd& X) {
   uint32_t N = X.rows(), M = X.cols();
   Eigen::MatrixXd Y(N, M);
 
-  double_t pi_over_M = std::numbers::pi / (double_t)M;
+  // Coefficienti di normalizzazione
   double_t sqrt_of_two_over_M = std::sqrt(2.0 / (double_t) M);
   double_t one_over_sqrt_of_two = std::sqrt(0.5);
+  // Precalcolo di (j + 0.5) * pi / M per ogni j : [0, M)
+  double_t pi_over_M = std::numbers::pi / (double_t)M;
   Eigen::VectorXd Z(M);
   for (uint32_t j = 0; j < M; ++j) {
     Z.coeffRef(j) = (j + 0.5) * pi_over_M;
@@ -196,9 +202,12 @@ Eigen::MatrixXd dcct::FastActuator::dct(Eigen::MatrixXd& X) {
   Eigen::RowVectorXd W;
   X.transposeInPlace();
   for (uint32_t k = 0; k < M; ++k) {
+    // W e' un array di coseni delle entrate del vettore Z * k
     W = (Z * k).array().cos();
+    // Calcolo la colonna k-esima e gli applico la normalizzazione generica
     Y.col(k) = (W * X).colwise().sum() * sqrt_of_two_over_M;
   }
+  // Sistemo la normalizzazione della prima colonna
   Y.col(0) *= one_over_sqrt_of_two;
 
   return Y;
@@ -207,15 +216,23 @@ Eigen::MatrixXd dcct::FastActuator::dct(Eigen::MatrixXd& X) {
 
 \subsection{FFTW}
 
+La libreria consiglia di creare un \textbf{execution plan} per migliorare le prestazioni di esecuzione della DCT, e cos\`i \`e stato fatto.
+
 \begin{lstlisting}[language=C++]
 Eigen::MatrixXd dcct::FFTWActuator::dct(Eigen::MatrixXd& X) {
   uint32_t N = X.rows(), M = X.cols();
   Eigen::MatrixXd Y(N, M);
+  // Coefficienti di normalizzazione
   double_t sqrt_of_one_half_over_N = std::sqrt(0.5 / (double_t) M);
   double_t one_over_sqrt_of_two = std::sqrt(0.5);
 
+  // FFTW_REDFT10 e' la DCT-II
   int dims[1] = {(int)M}; 
   fftw_r2r_kind kinds[1] = {FFTW_REDFT10};
+  // Creo un piano con l'istruzione di costruire un output
+  // senza modificare l'input, altrimenti l'output non si
+  // dovrerebbe nell'input ma quest'ultimo verrebbe utilizzato
+  // per precalcolare alcuni fattori.
   fftw_plan plan = fftw_plan_many_r2r(
     1, dims, N, const_cast<double*>(X.data()),
     dims, N, 1, Y.data(),
@@ -224,6 +241,7 @@ Eigen::MatrixXd dcct::FFTWActuator::dct(Eigen::MatrixXd& X) {
   fftw_execute_r2r(plan, const_cast<double*>(X.data()), Y.data());
   fftw_destroy_plan(plan);
 
+  // Applico la normalizzazione
   Y *= sqrt_of_one_half_over_N;
   Y.col(0) *= one_over_sqrt_of_two;
   return Y;
@@ -232,6 +250,9 @@ Eigen::MatrixXd dcct::FFTWActuator::dct(Eigen::MatrixXd& X) {
 
 \subsection{PocketFFT}
 
+\`E difficile all'inizio prenderci la mano ma una volta che si \`e compreso come ragiona l'API diventa comunque utilizzabile.
+Uno dei limiti di questa implementazione \`e che non supporta le matrici non quadrate, possibilmente risolvibile ma in mancanza di una documentazione chiara \`e stato impossibile porre rimedio al problema.
+
 \begin{lstlisting}[language=C++]
 #define POCKETFFT_DCT2 2
 #define POCKETFFT_SINGLETHREAD 1
@@ -239,46 +260,107 @@ Eigen::MatrixXd dcct::FFTWActuator::dct(Eigen::MatrixXd& X) {
 Eigen::MatrixXd dcct::PocketFFTActuator::dct(Eigen::MatrixXd& X) {
   uint32_t N = X.rows(), M = X.cols();
   Eigen::MatrixXd Y(N, M);
+  // Coefficienti di normalizzazione
   double_t sqrt_of_two_over_M = std::sqrt(0.5 / (double_t) M);
   double_t one_over_sqrt_of_two = std::sqrt(0.5);
 
+  // Cerimony per la dimensione delle matrici
   const pocketfft::shape_t shape = {N, M};
   const pocketfft::stride_t stride_in = {sizeof(double_t),
                                          (long)(sizeof(double_t) * M)};
   const pocketfft::stride_t stride_out = {sizeof(double_t),
                                           (long)(sizeof(double_t) * M)};
+  // E l'istruzione su quali assi agire (in questo caso per il lungo)
   const pocketfft::shape_t axes = {1};
+  // PocketFFT supporta nativamente il multithread, ma si e' deciso
+  // di limitare questo aspetto per fare un confronto piu' equo
+  // con il resto delle implementazioni
   pocketfft::dct<double_t>(shape, stride_in,
                            stride_out, axes,
                            POCKETFFT_DCT2, X.data(),
                            Y.data(), 1,
                            false, POCKETFFT_SINGLETHREAD);
 
+  // Applico la normalizzazione
   Y *= sqrt_of_two_over_M;
   Y.col(0) *= one_over_sqrt_of_two;
   return Y;
 }
 \end{lstlisting}
 
-%Sezione con la struttura del codice del progetto con
-%-OK un diagramma d2 TALA
-%-OK con la spiegazione del tratto Actuator
-%- gli snippet di codice delle DCT implementate dalle singole strutture
-%- gli snippet di codice delle IDCT implementate dalle singole strutture
-%- uno snippet per mostrare che DCT2,IDCT2 sono "naive"
-%Gli snippet sarebbe meglio a questo punto farli in C++ con listings per mostrare i binding e cose cosi', pero' magari diminuendo il carattere dello stile
+\subsection{Compressione}
+
+\`E stata implementata una funzione di compressione che prende in input il percorso all'immagine da comprimere, il percorso dove salvare l'output, uno \textbf{specifier} che contiene la configurazione (Actuator da usare, dimensione dei blocchi ... etc) e una coppia di funzioni che possono essere utilizzare dall'esterno per ottenere un feedback di avanzamento della compressione (utile per la GUI che si vedra' in seguito).
+Siccome le immagini grayscale bmp sono equivalenti ad un'immagine a 1 canale a 8 bit, si \`e deciso di implementare una funzione che comprime un canale (WIDTH x HEIGHT x 8 bit) da richiamare nella funzione di compressione delle immagini: questo ha permesso di implementare il supporto alle immagini a 3 e 4 colori (RGB e RGBA).
+Inoltre durante la divisione dell'immagine in blocchi di dimensione $F$ si \`e deciso di "tagliare" le eccedenze nella misura in cui non vengono processate, ma l'immagine rimane della dimensione originale.
+Di seguito un resoconto sotto forma di pseudocodice dell'attivit\`a di compressione.
+
+\begin{algorithm}
+  \renewcommand\thealgorithm{}
+  \caption{Algoritmo di Compressione}
+  \begin{algorithmic}
+    \Procedure{CompressChannel}{input\_channel, output\_channel, actuator, F, d}
+      \For{$i \gets 0; i < input\_channel.height; i \gets i + F$}
+        \LineComment{Si evita di processare le righe in eccesso}
+        \If{$i + F > input\_channel.height$}
+          \State break
+        \EndIf
+        \For{$j \gets 0; j < input\_channel.width; j \gets j + F$}
+          \LineComment{Si evita di processare le colonne in eccesso}
+          \If{$j + F > input\_channel.width$}
+            \State break
+          \EndIf
+          \LineComment{Seleziono il blocco sulla i-esima riga e j-esima colonna di dimensione $F \times F$}
+          \State block $\gets$ input\_channel.block(i, j, F, F)
+          \State block $\gets$ actuator.dct2(block)
+          \State block $\gets$ CutBlock(block, F, d)
+          \State block $\gets$ actuator.idct2(block)
+          \State block $\gets$ RoundBlock(block, F)
+          \LineComment{Scrivo il blocco sulla i-esima riga e j-esima colonna di dimensione $F \times F$}
+          \State output\_channel.block(i, j, F, F) $\gets$ block
+        \EndFor
+      \EndFor
+    \EndProcedure
+    \Procedure{CompressImage}{input\_filepath, output\_filepath, specifier}
+      \State input\_image $\gets$ load\_image(input\_filepath)
+      \State output\_image $\gets$ allocate\_as(input\_image)
+      \State actuator $\gets$ specifier.actuator()
+      \State F $\gets$ specifier.F()
+      \State d $\gets$ specifier.d()
+      \LineComment{Processo ogni canale separatamente}
+      \For{$c \gets 1$ to input\_image.channels}
+        \State CompressChannel(input\_image.channel(c), output\_image.channel(c), actuator, F, d)
+      \EndFor
+      \State write\_image(output\_image, output\_filepath)
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+\subsection{Interfacce}
+
+L'interfaccia da riga di comando permette sia di comprimere immagini, sia di avviare la GUI, sia di eseguire un benchmark parametrizzato da un file \textit{json} (verr\`a utilizzato in seguito).
+La configurazione della compressione avviene tramite una stringa \textit{actuator-pattern} che specifica la funzione di compressione (tra le librerie ottimizzate o anche quelle naive), la dimensione del blocco e il treshold di qualit\`a.
+
+\putimage{images/interface-cli.png}{Interfaccia da riga di comando}{png:interface_cli}{0.99}
+
+L'interfaccia GUI permette di selezionare un'immagine dal filesystem, la dimensione del blocco e il treshold di qualit\`a.
+Avviata la compressione con il relativo pulsante, la GUI utilizzer\`a la routine di compressione descritta nella sezione precedente scrivendo l'immagine compressa in \textit{/tmp/dcct.output.png} sia per poterla recuperare sia perch\`e \`e pi\`u semplice utilizzare le immagini in Qt se lette dal filesystem.
+Finita la compressione (avanzamento segnalato da una barra di progressione) l'immagine originale e la versione compressa sono affiancate e debitamente segnalate.
+
+\putimage{images/interface-gui.png}{Interfaccia GUI in Qt6}{png:interface_gui}{0.99}
 
 \section{Esperimenti}
 
-%brevissima introduzione agli esperimenti che sono stati condotti
-
 \subsection{Test di Velocit\`a}
 
-%in questa sezione analizziamo la velocita' delle librerie
-%in particolare devo dire come ho trovato le matrici (le ho create io)
-%e mostrare il grafo semilogy dei tempi di esecuzione
-%quindi dire che si il mio e' N^3 e il loro e' N^2 LogN
-%PocketFFT e' piu' veloce di FFTW anche se ha problemi con matrici non quadrate (ai fini della compressione di immagini non cambia un casu)
+In questa sezione si analizza la velocit\`a delle librerie e dell'implementazioni naive.
+Le matrici su cui eseguono la DCT 2D sono $N \times N$ generate randomicamente con $N \in [100, 3000]$.
+
+\putimage{images/actuator-trends.png}{Tempi di Esecuzione in scala semilogaritmica}{png:actuator-trends}{0.99}
+
+Sono riportati nel grafico anche gli andamenti teorici affiancati agli andamenti effettivi delle implementazioni.
+Prevedibilmente l'implementazione naive segue un'andamento polinomiale $O(N^3)$ mentre le due librerie sono pi\`u veloci e scalano come $O(N^2 Log N)$.
+In particolare si \`e rilevato come \textit{PocketFFT} sia significativamente pi\`u veloce di \textit{FFTW}.
 
 \subsection{Compressione di Immagini}
 

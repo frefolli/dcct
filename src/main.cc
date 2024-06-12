@@ -35,7 +35,7 @@ inline void PrintHelp(std::string executable) {
   std::cerr << "  -m/--matrix <matrix-pattern>             Expects a Matrix Specifer of form `src:<path>` or `<class>[:N[:density]]`" << std::endl;
   std::cerr << "  -a/--actuator <actuator-pattern>         Expects a Actuator Specifer of form `<class>[:tol[:maxIter]]`" << std::endl;
   std::cerr << "  -r/--report <report-filepath>            Expects a json Report filepath" << std::endl;
-  std::cerr << "  -b/--benchmark <benchmark-filepath>   Expects a json Benchmark filepath" << std::endl;
+  std::cerr << "  -b/--benchmark <benchmark-filepath>      Expects a json Benchmark filepath" << std::endl;
   std::cerr << "  -i/--input <input-filepath>              Expects an image filepath" << std::endl;
   std::cerr << "  -o/--output <output-filepath>            Expects an image filepath" << std::endl;
   std::cerr << "  -d/--dry-run                             Exit after parsing specifiers" << std::endl;
@@ -192,7 +192,7 @@ int DoCompress(CliConfig& cli_config) {
   if (cli_config.dry_run)
     return 0;
   
-  dcct::CompressImage(cli_config.input_filepath, cli_config.output_filepath, actuator_specifier);
+  assert(dcct::CompressImage(cli_config.input_filepath, cli_config.output_filepath, actuator_specifier));
   return 0;
 }
 
