@@ -41,7 +41,7 @@ docs:
 
 report/main.pdf: report/main.tex report/images/*
 	make -C report
-	cp report/main.pdf /mnt/c/Users/franc/Desktop/dcct.pdf
+	cp report/main.pdf ~/Desktop/dcct.pdf
 
 edit:
 	lvim report/main.tex

@@ -370,33 +370,33 @@ Infine la GUI di default usa \textbf{PocketFFT} ma con poca difficolt\`a si potr
 In questa sezione si analizza la velocit\`a delle librerie e dell'implementazioni naive nella DCT 2D su matrici di grandi dimensioni.
 Le matrici su cui eseguono sono matrici quadrate $N \times N$ generate randomicamente con $N \in [100, 1000]$.
 
-\putimage{images/actuator-trends.png}{Tempi di Esecuzione in scala semilogaritmica}{png:actuator-trends}{0.99}
-
 Sono riportati nel grafico anche gli andamenti teorici affiancati agli andamenti effettivi delle implementazioni.
 Prevedibilmente l'implementazione naive segue un'andamento polinomiale $O(N^3)$ mentre le due librerie sono pi\`u veloci e scalano come $O(N^2 Log N)$.
 
-In particolare si \`e rilevato come \textit{PocketFFT} sia significativamente pi\`u veloce di \textit{FFTW}, ma solo in un ambiente di compilazione nativo Linux, sotto WSL si verifica l'opposto.
-Questo probabilmente dipende da ottimizzazioni della libreria PocketFFT che pu\`o fare a compile time e del diverso meccaninsmo di allocazione delle risorse dei due sistemi operativi.
-Il benchmark precedente era limitato alle matrici $1000 \times 1000$ per via della lentezza del metodo "naive".
-Le matrici quadrate questa volta sono generate randomicamente con $N \in [100, 4000]$.
+\putimage{images/actuator-trends.png}{Tempi di Esecuzione in scala semilogaritmica}{png:actuator-trends}{0.99}
+
+Questo benchmark era limitato alle matrici $1000 \times 1000$ per via della lentezza del metodo "naive", per questa ragione non si vede molto chiaramente l'andamento di FFTW.
+Per porre rimedio si \`e eseguito un secondo benchmark dove le matrici quadrate questa volta sono generate randomicamente con $N \in [100, 4000]$.
 
 \putimagecouple
   {\putsubimage{./images/benchmark-libraries-wsl.png}{Andamenti del Tempo di Esecuzione delle librerie in ambiente WSL}{png:benchmark-libraries-wsl}{0.45}{0.99}}
   {\putsubimage{./images/benchmark-libraries-linux.png}{Andamenti del Tempo di Esecuzione delle librerie in ambiente Linux}{png:benchmark-libraries-linux}{0.45}{0.99}}
 
+In particolare si \`e rilevato come \textit{PocketFFT} sia significativamente pi\`u veloce di \textit{FFTW}, ma solo in un ambiente di compilazione nativo Linux, sotto WSL si verifica l'opposto.
+Questo probabilmente dipende dalle ottimizzazioni che la libreria PocketFFT pu\`o fare a compile time e del diverso meccaninsmo di allocazione delle risorse dei due sistemi operativi.
 \subsection{Compressione di immagini}
 
 \subsubsection{Immagini in toni di grigio}
 
 \putimage{./images/compression-gs-original.png}{Immagine in grayscale originale}{png:compression-gs-original}{0.45}
 
-Le immagini vengono compresse esattamente come ci si aspetta, all'aumentare del numero di componenti azzerate la qualit\`a dell'immagine scende.
+Le immagini vengono compresse esattamente come ci si aspetta, all'aumentare del numero di componenti azzerate, la qualit\`a dell'immagine scende.
 
 \putimagecouple
   {\putsubimage{./images/compression-gs-F10-d16.png}{Immagine compressa con F=10 e d=16}{png:compression-gs-F10-d16}{0.45}{0.99}}
   {\putsubimage{./images/compression-gs-F10-d4.png}{Immagine compressa con F=10 e d=4}{png:compression-gs-F10-d4}{0.45}{0.99}}
 
-Inoltre all'aumentare della dimensione dei blocchi $F$ inizia a presentarsi pi\`u nitidamente il fenomeno di Gibbs (cosiddetto effetto \textbf{Ringing Artifacts}).
+Inoltre all'aumentare della dimensione dei blocchi $F$, inizia a presentarsi pi\`u nitidamente il fenomeno di Gibbs (cosiddetto effetto \textbf{Ringing Artifacts}).
 
 \putimagecouple
   {\putsubimage{./images/compression-gs-F30-d50.png}{Immagine compressa con F=30 e d=50}{png:compression-gs-F30-d50}{0.45}{0.99}}
@@ -416,7 +416,8 @@ Nelle immagini a colori si nota pi\`u facilmente la squadrettatura prodotta dall
 
 \subsection{Benchmark compressione di immagini}
 
-Per comprendere meglio le ragioni della scelta di \textit{PocketFFT} come attuatore di default si \`e scelto di esguire un benchmark sulla compressione di immagini di grandi dimensioni generate a partire da una immagine di base che viene scalata per ottenere un'immagine da utilizzare nel benchmark.
+Per comprendere meglio le ragioni della scelta di \textit{PocketFFT} come attuatore di default si \`e scelto di eseguire un benchmark sulla compressione di immagini di grandi dimensioni.
+Queste immagini sono generate a partire da una immagine di base che viene scalata per ottenere un'immagine bersaglio da utilizzare nel benchmark.
 Tutte le immagini verranno compresse con $F=30$ e $d=29$.
 Ancora una volta abbiamo una discrepanza di performance tra WSL e Linux per PocketFFT: se sotto Linux c'\`e una differenza abissale tra le due librerie, su WSL FFTW risulta appena lievemente migliore a PocketFFT.
 
