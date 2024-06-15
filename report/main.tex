@@ -163,6 +163,11 @@ Sono state inoltre implementate le operazioni inverse \textbf{IDCT}, \textbf{IDC
 \subsection{Slow}
 
 Si tratta di una implementazione da manuale della Discrete Cosine Trasform che applica anche la normalizzazione.
+In particolare si fa riferimento al caso 1D per righe su matrici $N \times M$.
+
+$$
+Y _ {i,k} = \Sigma ^ {j = M} _ {j = 1} cos(\frac {\pi k (2j + 1)} {M}) X_{i, j}
+$$
 
 \begin{lstlisting}[language=C++]
 Eigen::MatrixXd dcct::SlowActuator::dct(Eigen::MatrixXd& X) {
@@ -190,10 +195,13 @@ Eigen::MatrixXd dcct::SlowActuator::dct(Eigen::MatrixXd& X) {
 }
 \end{lstlisting}
 
+Sebbene sia relativamente facile implementare direttamente la formula della DCT in questo modo, c'\`e anche da dire che sarebbe poco efficiente, in quanto le librerie che implementano le operazioni su Matrici e Vettori solitamente approfittano di ottimizzazione a compile time di vario genere (anche le capabilities del processore) per rendere pi\`u veloci prodotti, somme e operazioni cumulate (ex: somma di iteratori).
+Di seguito \`e presentata un'implementazione che fa uso di queste ottimizzazioni out-of-the-box di Eigen.
+
 \subsection{Fast}
 
 Il nome \textit{Fast} non si riferisce all'applicazione della Fast Fourier Transform ma bens\`i all'utilizzo avanzato di Eigen per ottimizzare i calcoli.
-Questa \`e l'implementazione \textit{naive} di bandiera.
+Questa \`e l'implementazione \textit{naive} di bandiera che verr\`a utilizzata al fianco di quelle da libreria.
 
 \begin{lstlisting}[language=C++]
 Eigen::MatrixXd dcct::FastActuator::dct(Eigen::MatrixXd& X) {
@@ -224,6 +232,9 @@ Eigen::MatrixXd dcct::FastActuator::dct(Eigen::MatrixXd& X) {
   return Y;
 }
 \end{lstlisting}
+
+Fondamentalmente si utilizza il precalcolo di alcuni coefficienti e l'utilizzo delle operazioni iterate (`(Z * k).array.cos()` \`e risolto come iteratore) per guadagnare in velocit\`a.
+Paradossalmente questa "compressione" del codice rende l'implementazione pi\`u leggibile.
 
 \subsection{FFTW}
 
@@ -262,7 +273,6 @@ Eigen::MatrixXd dcct::FFTWActuator::dct(Eigen::MatrixXd& X) {
 \subsection{PocketFFT}
 
 \`E difficile all'inizio prenderci la mano ma una volta che si \`e compreso come ragiona l'API diventa comunque utilizzabile.
-Uno dei limiti di questa implementazione \`e che non supporta le matrici non quadrate, possibilmente risolvibile ma in mancanza di una documentazione chiara \`e stato impossibile porre rimedio al problema.
 
 \begin{lstlisting}[language=C++]
 #define POCKETFFT_DCT2 2
@@ -275,12 +285,12 @@ Eigen::MatrixXd dcct::PocketFFTActuator::dct(Eigen::MatrixXd& X) {
   double_t sqrt_of_two_over_M = std::sqrt(0.5 / (double_t) M);
   double_t one_over_sqrt_of_two = std::sqrt(0.5);
 
-  // Cerimony per la dimensione delle matrici
+  // Ceremony per la dimensione delle matrici
   const pocketfft::shape_t shape = {N, M};
   const pocketfft::stride_t stride_in = {sizeof(double_t),
-                                         (long)(sizeof(double_t) * M)};
+                                         (long)(sizeof(double_t) * N)};
   const pocketfft::stride_t stride_out = {sizeof(double_t),
-                                          (long)(sizeof(double_t) * M)};
+                                          (long)(sizeof(double_t) * N)};
   // E l'istruzione su quali assi agire (in questo caso per il lungo)
   const pocketfft::shape_t axes = {1};
   // PocketFFT supporta nativamente il multithread, ma si e' deciso
@@ -406,7 +416,7 @@ Inoltre all'aumentare della dimensione dei blocchi $F$, inizia a presentarsi pi\
 
 Come enunciato nella sezione sull'algoritmo di compressione si possono utilizzare anche immagini a colori.
 
-\putimage{./images/compression-cl-original.png}{Immagine in grayscale originale}{png:compression-cl-original}{0.45}
+\putimage{./images/compression-cl-original.png}{Immagine a colori originale}{png:compression-cl-original}{0.45}
 
 Nelle immagini a colori si nota pi\`u facilmente la squadrettatura prodotta dalla "quantizzazione" della compressione mentre appare meno evidente il fenomeno di Gibbs.
 

@@ -320,6 +320,8 @@ int DoReadbin(CliConfig& cli_config) {
   Eigen::MatrixXd X;
   dcct::LoadMatrix(X, cli_config.input_filepath, dcct::MatrixFileFormat::BIN);
   std::cout << X << std::endl;
+  std::cout << "row stride: " << X.rowStride() << std::endl;
+  std::cout << "col stride: " << X.colStride() << std::endl;
  
   return 0;
 }

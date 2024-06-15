@@ -11,8 +11,8 @@ Eigen::MatrixXd dcct::PocketFFTActuator::dct(Eigen::MatrixXd& X) {
   double_t one_over_sqrt_of_two = std::sqrt(0.5);
 
   const pocketfft::shape_t shape = {N, M};
-  const pocketfft::stride_t stride_in = {sizeof(double_t), (long)(sizeof(double_t) * M)};
-  const pocketfft::stride_t stride_out = {sizeof(double_t), (long)(sizeof(double_t) * M)};
+  const pocketfft::stride_t stride_in = {sizeof(double_t), (long)(sizeof(double_t) * N)};
+  const pocketfft::stride_t stride_out = {sizeof(double_t), (long)(sizeof(double_t) * N)};
   const pocketfft::shape_t axes = {1};
   pocketfft::dct<double_t>(shape, stride_in, stride_out, axes, POCKETFFT_DCT2, X.data(), Y.data(), 1, false, POCKETFFT_SINGLETHREAD);
 
@@ -37,8 +37,8 @@ Eigen::MatrixXd dcct::PocketFFTActuator::idct(Eigen::MatrixXd& Y) {
   Y.col(0) /= one_over_sqrt_of_two;
 
   const pocketfft::shape_t shape = {N, M};
-  const pocketfft::stride_t stride_in = {sizeof(double_t), (long)(sizeof(double_t) * M)};
-  const pocketfft::stride_t stride_out = {sizeof(double_t), (long)(sizeof(double_t) * M)};
+  const pocketfft::stride_t stride_in = {sizeof(double_t), (long)(sizeof(double_t) * N)};
+  const pocketfft::stride_t stride_out = {sizeof(double_t), (long)(sizeof(double_t) * N)};
   const pocketfft::shape_t axes = {1};
   pocketfft::dct<double_t>(shape, stride_in, stride_out, axes, POCKETFFT_DCT3, Y.data(), X.data(), 1, false, POCKETFFT_SINGLETHREAD);
 
