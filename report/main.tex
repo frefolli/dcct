@@ -373,6 +373,8 @@ Infine la GUI di default usa \textbf{PocketFFT} ma con poca difficolt\`a si potr
 
 \putimage{images/interface-gui.png}{Interfaccia GUI in Qt6}{png:interface_gui}{0.99}
 
+\newpage
+
 \section{Esperimenti}
 
 \subsection{Benchmark DCT 2D}
@@ -412,6 +414,21 @@ Inoltre all'aumentare della dimensione dei blocchi $F$, inizia a presentarsi pi\
   {\putsubimage{./images/compression-gs-F30-d50.png}{Immagine compressa con F=30 e d=50}{png:compression-gs-F30-d50}{0.45}{0.99}}
   {\putsubimage{./images/compression-gs-F30-d10.png}{Immagine compressa con F=30 e d=10}{png:compression-gs-F30-d10}{0.45}{0.99}}
 
+\newpage
+
+\subsubsection{Dimensione dei Blocchi}
+
+\putimage{./images/compression-gb-original.png}{Immagine in grayscale originale}{png:compression-cl-original}{0.45}
+
+All'aumentare della dimensione dei blocchi, il Fenomeno di Gibbs prende il sopravvento rispetto alla "pixelizzazione" dell'immagine.
+Come si pu\`o notare dall'ultima immagine, riducendo molto la dimensione dei blocchi, la "griglia" dei blocchi utilizzata dalla compressione emerge tramite la perdita di informazione.
+
+\putimagecouple
+  {\putsubimage{./images/compression-gb-F8-d2.png}{Immagine compressa con F=8 e d=2}{png:compression-gb-F8-d2}{0.45}{0.99}}
+  {\putsubimage{./images/compression-gb-F128-d30.png}{Immagine compressa con F=128 e d=30}{png:compression-gb-F128-d30}{0.45}{0.99}}
+
+\newpage
+
 \subsubsection{Immagini a colori}
 
 Come enunciato nella sezione sull'algoritmo di compressione si possono utilizzare anche immagini a colori.
@@ -423,6 +440,8 @@ Nelle immagini a colori si nota pi\`u facilmente la squadrettatura prodotta dall
 \putimagecouple
   {\putsubimage{./images/compression-cl-F30-d50.png}{Immagine compressa con F=30 e d=50}{png:compression-cl-F30-d50}{0.45}{0.99}}
   {\putsubimage{./images/compression-cl-F30-d10.png}{Immagine compressa con F=30 e d=10}{png:compression-cl-F30-d10}{0.45}{0.99}}
+
+\newpage
 
 \subsection{Benchmark compressione di immagini}
 
