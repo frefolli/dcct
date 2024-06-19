@@ -1,0 +1,24 @@
+CompressImage: {
+  a0: "load image"
+  a1: "allocate"
+  a2: "extract parameters"
+  a3: "CompressChannel()"
+  a4: "save image"
+  a0 -> a1 -> a2 -> a3 -> a4
+  a3 -> a3
+}
+CompressChannel: {
+  b0: "for each block in image"
+  b1: "CompressBlock()"
+  b0 -> b1
+}
+CompressBlock: {
+  c0: "extract block"
+  c1: "apply DCT-II 2D"
+  c2: "cut block"
+  c3: "apply IDCT-II 2D"
+  c4: "round block"
+  c5: "save block"
+  c0 -> c1 -> c2 -> c3 -> c4 -> c5
+}
+CompressImage -> CompressChannel -> CompressBlock
